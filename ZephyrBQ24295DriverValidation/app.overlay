@@ -1,8 +1,11 @@
+#include <zephyr/dt-bindings/i2c/i2c.h>
+#include <zephyr/dt-bindings/gpio/gpio.h>
+
 &pinctrl {
     i2c0_default: i2c0_default {
         group1 {
             pinmux = <I2C0_SDA_GPIO13>,
-                    <I2C0_SCL_GPIO14>;
+                     <I2C0_SCL_GPIO14>;
             bias-pull-up;
             drive-open-drain;
         };
@@ -20,7 +23,14 @@
         compatible = "ti,bq24295";
         reg = <0x6b>;
 
+        status = "okay";
+
+        /* Required by binding */
+        constant-charge-current-max-microamp = <1000000>;
+        constant-charge-voltage-max-microvolt = <4208000>;
+
         int-gpios = <&gpio0 4 GPIO_ACTIVE_LOW>;
         stat-gpios = <&gpio0 21 GPIO_ACTIVE_LOW>;
+        ce-gpios = <&gpio0 3 GPIO_ACTIVE_LOW>;
     };
 };
