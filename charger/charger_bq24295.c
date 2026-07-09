@@ -69,42 +69,126 @@ LOG_MODULE_REGISTER(ti_bq24295, CONFIG_CHARGER_LOG_LEVEL);
 
 /* Register 0x03 - Pre-Charge and Termination Current Control */
 #define BQ24295_REG_PRECHG_TERM_CURRENT	0x03
+
 #define BQ24295_IPRECHG_MASK           	GENMASK(7,4)
 #define BQ24295_ITERM_MASK             	GENMASK(3,0)
+
 #define BQ24295_IPRECHG_OFFSET_UA      	128000
 #define BQ24295_IPRECHG_STEP_UA        	128000
+#define BQ24295_IPRECHG_MIN_UA         	128000
+#define BQ24295_IPRECHG_MAX_UA        	2048000
 #define BQ24295_ITERM_OFFSET_UA        	128000
 #define BQ24295_ITERM_STEP_UA          	128000
+#define BQ24295_ITERM_MIN_UA           	128000
+#define BQ24295_ITERM_MAX_UA          	2048000
 
 /* Register 0x04 - Charge Voltage Control */
 #define BQ24295_REG_CHARGE_VOLTAGE	0x04
-#define BQ24295_VREG_MASK              	GENMASK(7,2)
-#define BQ24295_VREG_OFFSET_UV         	3504000
-#define BQ24295_VREG_STEP_UV           	16000
 
-#define BQ24295_REG_CHARGE_TERM_TIMER	0x05
-#define BQ24295_REG_BOOST_THERMAL	0x06
-#define BQ24295_REG_MISC_OPERATION	0x07
+#define BQ24295_VREG_MASK             	GENMASK(7, 2)
+#define BQ24295_BATLOWV               	BIT(1)
+#define BQ24295_VRECHG                	BIT(0)
+
+#define BQ24295_VREG_OFFSET_UV       	3504000
+#define BQ24295_VREG_STEP_UV         	16000
+#define BQ24295_VREG_MIN_UV          	3504000
+#define BQ24295_VREG_MAX_UV          	4400000
+#define BQ24295_BATLOWV_SEL_2800MV     	0
+#define BQ24295_BATLOWV_SEL_3000MV     	1
+#define BQ24295_VRECHG_SEL_100MV       	0
+#define BQ24295_VRECHG_SEL_300MV       	1
+
+/* Register 0x05 - Charge Termination/Timer Control */
+#define BQ24295_REG_CHARGE_TERM_TIMER  	0x05
+
+#define BQ24295_EN_TERM               	BIT(7)
+#define BQ24295_WATCHDOG_MASK         	GENMASK(5, 4)
+#define BQ24295_EN_TIMER              	BIT(3)
+#define BQ24295_CHG_TIMER_MASK        	GENMASK(2, 1)
+
+#define BQ24295_WATCHDOG_SEL_DISABLE   	0x0
+#define BQ24295_WATCHDOG_SEL_40S       	0x1
+#define BQ24295_WATCHDOG_SEL_80S       	0x2
+#define BQ24295_WATCHDOG_SEL_160S      	0x3
+#define BQ24295_CHG_TIMER_SEL_5H       	0x0
+#define BQ24295_CHG_TIMER_SEL_8H       	0x1
+#define BQ24295_CHG_TIMER_SEL_12H      	0x2
+#define BQ24295_CHG_TIMER_SEL_20H      	0x3
+
+/* Register 0x06 - Boost Voltage / Thermal Regulation Control */
+#define BQ24295_REG_BOOST_THERMAL      	0x06
+
+#define BQ24295_BOOSTV_MASK            	GENMASK(7, 4)
+#define BQ24295_BHOT_MASK              	GENMASK(3, 2)
+#define BQ24295_TREG_MASK              	GENMASK(1, 0)
+
+#define BQ24295_BOOSTV_OFFSET_UV       	4550000
+#define BQ24295_BOOSTV_STEP_UV         	64000
+#define BQ24295_BOOSTV_MIN_UV          	4550000
+#define BQ24295_BOOSTV_MAX_UV          	5510000
+#define BQ24295_BHOT_SEL_VBHOT1        	0x0
+#define BQ24295_BHOT_SEL_VBHOT0        	0x1
+#define BQ24295_BHOT_SEL_VBHOT2        	0x2
+#define BQ24295_BHOT_SEL_DISABLE       	0x3
+#define BQ24295_TREG_SEL_60C           	0x0
+#define BQ24295_TREG_SEL_80C           	0x1
+#define BQ24295_TREG_SEL_100C          	0x2
+#define BQ24295_TREG_SEL_120C          	0x3
+
+/* Register 0x07 - Misc Operation Control */
+#define BQ24295_REG_MISC_OPERATION     	0x07
+
+#define BQ24295_DPDM_EN              	BIT(7)
+#define BQ24295_TMR2X_EN             	BIT(6)
+#define BQ24295_BATFET_DISABLE       	BIT(5)
+#define BQ24295_INT_MASK_MASK        	GENMASK(1, 0)
+
+#define BQ24295_INT_MASK_NONE          	0x0
+#define BQ24295_INT_MASK_BAT_FAULT     	BIT(0)
+#define BQ24295_INT_MASK_CHRG_FAULT    	BIT(1)
+#define BQ24295_INT_MASK_ALL           	GENMASK(1, 0)
 
 /* Register 0x08 - System Status */
-#define BQ24295_REG_SYSTEM_STATUS     	0x08
-#define BQ24295_VBUS_STAT_MASK         	GENMASK(7,6)
-#define BQ24295_CHRG_STAT_MASK         	GENMASK(5,4)
+#define BQ24295_REG_SYSTEM_STATUS      	0x08
 
+#define BQ24295_VBUS_STAT_MASK         	GENMASK(7, 6)
+#define BQ24295_CHRG_STAT_MASK         	GENMASK(5, 4)
 #define BQ24295_DPM_STAT               	BIT(3)
 #define BQ24295_PG_STAT                	BIT(2)
 #define BQ24295_THERM_STAT             	BIT(1)
 #define BQ24295_VSYS_STAT              	BIT(0)
 
-/* Register 0x09 - Fault Status */
-#define BQ24295_REG_FAULT             	0x09
-#define BQ24295_WATCHDOG_FAULT         	BIT(7)
-#define BQ24295_OTG_FAULT              	BIT(6)
-#define BQ24295_CHRG_FAULT_MASK        	GENMASK(5,4)
-#define BQ24295_BAT_FAULT              	BIT(3)
-#define BQ24295_NTC_FAULT_MASK         	GENMASK(2,0)
+#define BQ24295_VBUS_STAT_UNKNOWN      	0x0
+#define BQ24295_VBUS_STAT_USB_HOST     	0x1
+#define BQ24295_VBUS_STAT_ADAPTER      	0x2
+#define BQ24295_VBUS_STAT_OTG          	0x3
+#define BQ24295_CHRG_STAT_NOT_CHARGING 	0x0
+#define BQ24295_CHRG_STAT_PRECHARGE    	0x1
+#define BQ24295_CHRG_STAT_FASTCHARGE   	0x2
+#define BQ24295_CHRG_STAT_DONE         	0x3
 
+/* Register 0x09 - Fault Register */
+#define BQ24295_REG_FAULT              0x09
+
+#define BQ24295_WATCHDOG_FAULT         BIT(7)
+#define BQ24295_OTG_FAULT              BIT(6)
+#define BQ24295_CHRG_FAULT_MASK        GENMASK(5, 4)
+#define BQ24295_BAT_FAULT              BIT(3)
+#define BQ24295_NTC_FAULT_MASK         GENMASK(1, 0)
+
+#define BQ24295_CHRG_FAULT_NORMAL          	0x0
+#define BQ24295_CHRG_FAULT_INPUT           	0x1
+#define BQ24295_CHRG_FAULT_THERMAL_SHUTDOWN	0x2
+#define BQ24295_CHRG_FAULT_TIMER_EXPIRED   	0x3
+#define BQ24295_NTC_FAULT_NORMAL               	0x0
+
+/* Register 0x0A - Vendor / Part / Revision Status */
 #define BQ24295_REG_VENDOR            	0x0A
+
+#define BQ24295_REVISION_MASK          	GENMASK(2, 0)
+#define BQ24295_PART_NUMBER_MASK       	GENMASK(7, 5)
+
+#define BQ24295_PART_NUMBER            	0x6
 
 struct bq24295_config {
 	struct i2c_dt_spec i2c;
