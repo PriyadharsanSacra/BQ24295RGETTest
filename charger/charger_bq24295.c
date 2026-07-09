@@ -199,7 +199,8 @@ struct bq24295_config {
 };
 
 struct bq24295_data {
-	uint8_t status_reg;
+	uint8_t part_no;
+	uint8_t revision;
 };
 
 static int bq24295_reg_read(const struct device *dev, uint8_t reg, uint8_t *val)
@@ -244,6 +245,47 @@ static int bq24295_field_write(const struct device *dev, uint8_t reg, uint8_t ma
 	return bq24295_reg_update(dev, reg, mask, FIELD_PREP(mask, value));
 }
 
+static int bq24295_test_bit(const struct device *dev, uint8_t reg, uint8_t bit, bool *set)
+{
+	uint8_t value;
+	int ret;
+
+	ret = bq24295_reg_read(dev, reg, &value);
+	if (ret < 0) {
+		return ret;
+	}
+
+	*set = (value & bit) != 0U;
+
+	return 0;
+}
+
+static int bq24295_identify(const struct device *dev)
+{
+	struct bq24295_data *data = dev->data;
+	uint8_t reg;
+	int ret;
+
+	ret = bq24295_reg_read(dev, BQ24295_REG_VENDOR, &reg);
+
+	if (ret < 0) {
+		LOG_ERR("Failed to read vendor register (%d)", ret);
+		return ret;
+	}
+
+	data->part_no = FIELD_GET(BQ24295_PART_NUMBER_MASK, reg);
+	data->revision = FIELD_GET(BQ24295_REVISION_MASK, reg);
+
+	if (data->part_no != BQ24295_PART_NUMBER) {
+		LOG_ERR("Unexpected part number: 0x%x", data->part_no);
+		return -ENODEV;
+	}
+
+	LOG_INF("Detected BQ24295 (PN=0x%x, Rev=%u)", data->part_no, data->revision);
+
+	return 0;
+}
+
 static int bq24295_get_property(const struct device *dev, const charger_prop_t prop, 
 				union charger_propval *val)
 {
@@ -284,6 +326,76 @@ static int bq24295_charge_enable(const struct device *dev,
 	return -ENOTSUP;
 }
 
+static int test_helpers(const struct device *dev)
+
+{
+	int ret;
+	/*Validate all registers*/
+	for (uint8_t reg = 0; reg <= 0x0A; reg++) {
+		uint8_t value;
+		int ret;
+
+		ret = bq24295_reg_read(dev, reg, &value);
+		if (ret) {
+			printk("REG%02X read failed\n", reg);
+		} else {
+			printk("REG%02X = 0x%02X\n", reg, value);
+		}
+	}
+
+	uint8_t part;
+
+	ret = bq24295_field_read(dev,
+				BQ24295_REG_VENDOR,
+				BQ24295_PART_NUMBER_MASK,
+				&part);
+
+	printk("Part = %u\n", part);
+
+	bool pg;
+
+	ret = bq24295_test_bit(dev,
+			BQ24295_REG_SYSTEM_STATUS,
+			BQ24295_PG_STAT,
+			&pg);
+
+	printk("PG=%d\n", pg);
+
+	uint8_t reg_value;
+
+	ret = bq24295_field_read(dev,
+				BQ24295_REG_CHARGE_TERM_TIMER,
+				BQ24295_WATCHDOG_MASK,
+				&reg_value);
+
+	printk("Before Watchdog = %u\n", reg_value);
+
+	ret = bq24295_field_write(dev,
+				BQ24295_REG_CHARGE_TERM_TIMER,
+				BQ24295_WATCHDOG_MASK,
+				BQ24295_WATCHDOG_SEL_DISABLE);
+
+	ret = bq24295_field_read(dev,
+				BQ24295_REG_CHARGE_TERM_TIMER,
+				BQ24295_WATCHDOG_MASK,
+				&reg_value);
+
+	printk("After Watchdog = %u\n", reg_value);
+
+	ret = bq24295_field_read(dev,
+                   0xFF,
+                   0xFF,
+                   &reg_value);
+
+	if (ret == -EIO) {
+		printk("REG%02X read failed\n", 0xFF);
+	} else {
+		printk("REG%02X = 0x%02X\n", 0xFF, reg_value);
+	}
+
+	return 0;
+}
+
 static int bq24295_init(const struct device *dev)
 {
 	const struct bq24295_config *config = dev->config;
@@ -292,6 +404,15 @@ static int bq24295_init(const struct device *dev)
 		LOG_ERR("I2C bus not ready");
 		return -ENODEV;
 	}
+
+	int ret = bq24295_identify(dev);
+	if (ret < 0) {
+		LOG_ERR("Failed to identify BQ24295 (%d)", ret);
+		return ret;
+	}
+
+
+	test_helpers(dev);
 
 	LOG_INF("BQ24295 initialized");
 
