@@ -231,6 +231,8 @@ static int bq24295_field_read(const struct device *dev, uint8_t reg, uint8_t mas
 
 	ret = bq24295_reg_read(dev, reg, &tmp);
 
+	printk("bq24295_field_read: reg=0x%02x, mask=0x%02x, tmp=0x%02x\n", reg, mask, tmp);
+
 	if (ret < 0) {
 		return ret;
 	}
@@ -286,6 +288,96 @@ static int bq24295_identify(const struct device *dev)
 	return 0;
 }
 
+static int bq24295_get_online(const struct device *dev, enum charger_online *online)
+{
+	uint8_t vbus;
+	int ret;
+
+	ret = bq24295_field_read(dev,
+				BQ24295_REG_SYSTEM_STATUS,
+				BQ24295_CHRG_STAT_MASK,
+				&vbus);
+
+	printk("bq24295_get_online: vbus=%u\n", vbus);
+
+	if (ret < 0) {
+		return ret;
+	}
+
+	switch (vbus) {
+	case BQ24295_VBUS_STAT_UNKNOWN:
+		*online = CHARGER_ONLINE_OFFLINE;
+		break;
+
+	case BQ24295_VBUS_STAT_USB_HOST:
+	case BQ24295_VBUS_STAT_ADAPTER:
+		*online = CHARGER_ONLINE_FIXED;
+		break;
+
+	case BQ24295_VBUS_STAT_OTG:
+		*online = CHARGER_ONLINE_OFFLINE;
+		break;
+
+	default:
+		return -EIO;
+	}
+
+	return 0;
+}
+
+static int bq24295_gpio_init(const struct device *dev)
+{
+	const struct bq24295_config *config = dev->config;
+	int ret;
+
+	/* CE GPIO (optional) */
+	if (config->ce_gpio.port != NULL) {
+		if (!gpio_is_ready_dt(&config->ce_gpio)) {
+			LOG_ERR("CE GPIO not ready");
+			return -ENODEV;
+		}
+
+		ret = gpio_pin_configure_dt(&config->ce_gpio,
+					    GPIO_OUTPUT_INACTIVE);
+		if (ret < 0) {
+			LOG_ERR("Failed to configure CE GPIO (%d)", ret);
+			return ret;
+		}
+	}
+
+	/* INT GPIO (optional) */
+	if (config->int_gpio.port != NULL) {
+		if (!gpio_is_ready_dt(&config->int_gpio)) {
+			LOG_ERR("INT GPIO not ready");
+			return -ENODEV;
+		}
+
+		ret = gpio_pin_configure_dt(&config->int_gpio,
+					    GPIO_INPUT);
+		if (ret < 0) {
+			LOG_ERR("Failed to configure INT GPIO (%d)", ret);
+			return ret;
+		}
+	}
+
+	/* STAT GPIO (optional) */
+	if (config->stat_gpio.port != NULL) {
+		if (!gpio_is_ready_dt(&config->stat_gpio)) {
+			LOG_ERR("STAT GPIO not ready");
+			return -ENODEV;
+		}
+
+		ret = gpio_pin_configure_dt(&config->stat_gpio,
+					    GPIO_INPUT);
+		if (ret < 0) {
+			LOG_ERR("Failed to configure STAT GPIO (%d)", ret);
+			return ret;
+		}
+	}
+
+	return 0;
+}
+
 static int bq24295_get_property(const struct device *dev, const charger_prop_t prop, 
 				union charger_propval *val)
 {
@@ -294,13 +386,7 @@ static int bq24295_get_property(const struct device *dev, const charger_prop_t p
 
 	switch (prop) {
 	case CHARGER_PROP_ONLINE:
-		ret = bq24295_reg_read(dev, BQ24295_REG_SYSTEM_STATUS, &reg);
-		if (ret < 0) {
-			return ret;
-		}
-
-		val->online = CHARGER_ONLINE_FIXED;
-		return 0;
+		return bq24295_get_online(dev, &val->online);
 
 	default:
 		return -ENOTSUP;
@@ -400,17 +486,26 @@ static int bq24295_init(const struct device *dev)
 {
 	const struct bq24295_config *config = dev->config;
 
+	int ret = 0;
+
 	if (!device_is_ready(config->i2c.bus)) {
 		LOG_ERR("I2C bus not ready");
 		return -ENODEV;
 	}
 
-	int ret = bq24295_identify(dev);
+	ret = bq24295_identify(dev);
 	if (ret < 0) {
 		LOG_ERR("Failed to identify BQ24295 (%d)", ret);
 		return ret;
 	}
 
+	ret = bq24295_gpio_init(dev);
+	if (ret < 0) {
+		LOG_ERR("Failed to initialize GPIOs (%d)", ret);
+		return ret;
+	} else {
+		LOG_INF("GPIOs initialized successfully");
+	}
 
 	test_helpers(dev);
 
