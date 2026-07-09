@@ -168,27 +168,28 @@ LOG_MODULE_REGISTER(ti_bq24295, CONFIG_CHARGER_LOG_LEVEL);
 #define BQ24295_CHRG_STAT_DONE         	0x3
 
 /* Register 0x09 - Fault Register */
-#define BQ24295_REG_FAULT              0x09
+#define BQ24295_REG_FAULT              		0x09
 
-#define BQ24295_WATCHDOG_FAULT         BIT(7)
-#define BQ24295_OTG_FAULT              BIT(6)
-#define BQ24295_CHRG_FAULT_MASK        GENMASK(5, 4)
-#define BQ24295_BAT_FAULT              BIT(3)
-#define BQ24295_NTC_FAULT_MASK         GENMASK(1, 0)
+#define BQ24295_WATCHDOG_FAULT         		BIT(7)
+#define BQ24295_OTG_FAULT              		BIT(6)
+#define BQ24295_CHRG_FAULT_MASK        		GENMASK(5, 4)
+#define BQ24295_BAT_FAULT              		BIT(3)
+#define BQ24295_NTC_FAULT_MASK         		GENMASK(1, 0)
 
 #define BQ24295_CHRG_FAULT_NORMAL          	0x0
 #define BQ24295_CHRG_FAULT_INPUT           	0x1
 #define BQ24295_CHRG_FAULT_THERMAL_SHUTDOWN	0x2
 #define BQ24295_CHRG_FAULT_TIMER_EXPIRED   	0x3
+
 #define BQ24295_NTC_FAULT_NORMAL               	0x0
 
 /* Register 0x0A - Vendor / Part / Revision Status */
-#define BQ24295_REG_VENDOR            	0x0A
+#define BQ24295_REG_VENDOR             0x0A
 
-#define BQ24295_REVISION_MASK          	GENMASK(2, 0)
-#define BQ24295_PART_NUMBER_MASK       	GENMASK(7, 5)
+#define BQ24295_REVISION_MASK          GENMASK(2, 0)
+#define BQ24295_PART_NUMBER_MASK       GENMASK(7, 5)
 
-#define BQ24295_PART_NUMBER            	0x6
+#define BQ24295_PART_NUMBER            0x6
 
 struct bq24295_config {
 	struct i2c_dt_spec i2c;
@@ -201,39 +202,49 @@ struct bq24295_data {
 	uint8_t status_reg;
 };
 
-static int bq24295_reg_read(const struct device *dev,
-                            uint8_t reg,
-                            uint8_t *val)
+static int bq24295_reg_read(const struct device *dev, uint8_t reg, uint8_t *val)
 {
 	const struct bq24295_config *config = dev->config;
 
 	return i2c_reg_read_byte_dt(&config->i2c, reg, val);
 }
 
-static int bq24295_reg_write(const struct device *dev,
-                             uint8_t reg,
-                             uint8_t val)
+static int bq24295_reg_write(const struct device *dev, uint8_t reg, uint8_t val)
 {
 	const struct bq24295_config *config = dev->config;
 
 	return i2c_reg_write_byte_dt(&config->i2c, reg, val);
 }
 
-static int bq24295_reg_update(const struct device *dev,
-                              uint8_t reg,
-                              uint8_t mask,
-                              uint8_t val)
+static int bq24295_reg_update(const struct device *dev, uint8_t reg, uint8_t mask, uint8_t val)
 {
 	const struct bq24295_config *config = dev->config;
 
-	return i2c_reg_update_byte_dt(&config->i2c,
-					reg,
-					mask,
-					val);
+	return i2c_reg_update_byte_dt(&config->i2c, reg, mask, val);
 }
 
-static int bq24295_get_property(const struct device *dev,
-				const charger_prop_t prop,
+static int bq24295_field_read(const struct device *dev, uint8_t reg, uint8_t mask, uint8_t *value)
+{
+	uint8_t tmp;
+	int ret;
+
+	ret = bq24295_reg_read(dev, reg, &tmp);
+
+	if (ret < 0) {
+		return ret;
+	}
+
+	*value = FIELD_GET(mask, tmp);
+
+	return 0;
+}
+
+static int bq24295_field_write(const struct device *dev, uint8_t reg, uint8_t mask, uint8_t value)
+{
+	return bq24295_reg_update(dev, reg, mask, FIELD_PREP(mask, value));
+}
+
+static int bq24295_get_property(const struct device *dev, const charger_prop_t prop, 
 				union charger_propval *val)
 {
 	uint8_t reg;
@@ -246,7 +257,6 @@ static int bq24295_get_property(const struct device *dev,
 			return ret;
 		}
 
-		/* We'll decode REG08 later */
 		val->online = CHARGER_ONLINE_FIXED;
 		return 0;
 
@@ -255,8 +265,7 @@ static int bq24295_get_property(const struct device *dev,
 	}
 }
 
-static int bq24295_set_property(const struct device *dev,
-				const charger_prop_t prop,
+static int bq24295_set_property(const struct device *dev, const charger_prop_t prop,
 				const union charger_propval *val)
 {
 	ARG_UNUSED(dev);
