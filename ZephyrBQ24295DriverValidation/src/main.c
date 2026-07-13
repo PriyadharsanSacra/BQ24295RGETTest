@@ -164,6 +164,18 @@ int main(void)
 			printk("charger_get_prop() failed (%d)\n", ret);
 		}
 
+		ret = charger_get_prop(charger,
+				       CHARGER_PROP_INPUT_REGULATION_VOLTAGE_UV,
+				       &val);
+		if (ret == 0) {
+			printk("INPUT REGULATION VOLTAGE : %u uV\n",
+			       val.input_voltage_regulation_voltage_uv);
+		} else if (ret == -ENOTSUP) {
+			printk("INPUT REGULATION VOLTAGE property not supported\n");
+		} else {
+			printk("charger_get_prop() failed (%d)\n", ret);
+		}
+
 		k_sleep(K_SECONDS(5));
 	}
 

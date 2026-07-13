@@ -508,6 +508,24 @@ static int bq24295_get_input_current_limit(const struct device *dev, uint32_t *c
 
 }
 
+static int bq24295_get_vindpm(const struct device *dev, uint32_t *voltage_uv)
+{
+	uint8_t vindpm;
+	int ret;
+
+	ret = bq24295_field_read(dev,
+				BQ24295_REG_INPUT_SRC_CTRL,
+				BQ24295_VINDPM_MASK,
+				&vindpm);
+	if (ret < 0) {
+		return ret;
+	}
+
+	*voltage_uv = BQ24295_VINDPM_OFFSET_UV + (vindpm * BQ24295_VINDPM_STEP_UV);
+
+	return 0;
+}
+
 static int bq24295_gpio_init(const struct device *dev)
 {
 	const struct bq24295_config *config = dev->config;
@@ -582,6 +600,8 @@ static int bq24295_get_property(const struct device *dev, const charger_prop_t p
 		return bq24295_get_constant_charge_voltage(dev, &val->const_charge_voltage_uv);
 	case CHARGER_PROP_INPUT_REGULATION_CURRENT_UA:
 		return bq24295_get_input_current_limit(dev, &val->input_current_regulation_current_ua);
+	case CHARGER_PROP_INPUT_REGULATION_VOLTAGE_UV:
+		return bq24295_get_vindpm(dev, &val->input_voltage_regulation_voltage_uv);
 	default:
 		return -ENOTSUP;
 	}
