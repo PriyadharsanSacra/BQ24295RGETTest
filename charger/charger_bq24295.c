@@ -295,7 +295,7 @@ static int bq24295_get_online(const struct device *dev, enum charger_online *onl
 
 	ret = bq24295_field_read(dev,
 				BQ24295_REG_SYSTEM_STATUS,
-				BQ24295_CHRG_STAT_MASK,
+				BQ24295_VBUS_STAT_MASK,
 				&vbus);
 
 	printk("bq24295_get_online: vbus=%u\n", vbus);
@@ -448,36 +448,6 @@ static int test_helpers(const struct device *dev)
 	printk("PG=%d\n", pg);
 
 	uint8_t reg_value;
-
-	ret = bq24295_field_read(dev,
-				BQ24295_REG_CHARGE_TERM_TIMER,
-				BQ24295_WATCHDOG_MASK,
-				&reg_value);
-
-	printk("Before Watchdog = %u\n", reg_value);
-
-	ret = bq24295_field_write(dev,
-				BQ24295_REG_CHARGE_TERM_TIMER,
-				BQ24295_WATCHDOG_MASK,
-				BQ24295_WATCHDOG_SEL_DISABLE);
-
-	ret = bq24295_field_read(dev,
-				BQ24295_REG_CHARGE_TERM_TIMER,
-				BQ24295_WATCHDOG_MASK,
-				&reg_value);
-
-	printk("After Watchdog = %u\n", reg_value);
-
-	ret = bq24295_field_read(dev,
-                   0xFF,
-                   0xFF,
-                   &reg_value);
-
-	if (ret == -EIO) {
-		printk("REG%02X read failed\n", 0xFF);
-	} else {
-		printk("REG%02X = 0x%02X\n", 0xFF, reg_value);
-	}
 
 	return 0;
 }
