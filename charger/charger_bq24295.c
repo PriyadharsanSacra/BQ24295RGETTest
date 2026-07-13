@@ -325,6 +325,43 @@ static int bq24295_get_online(const struct device *dev, enum charger_online *onl
 	return 0;
 }
 
+static int bq24295_get_status(const struct device *dev, enum charger_status *status)
+{
+	uint8_t chrg;
+	int ret;
+
+	ret = bq24295_field_read(dev,
+				BQ24295_REG_SYSTEM_STATUS,
+				BQ24295_CHRG_STAT_MASK,
+				&chrg);
+
+	printk("bq24295_get_status: chrg=%u\n", chrg);
+
+	if (ret < 0) {
+		return ret;
+	}
+
+	switch (chrg) {
+	case BQ24295_CHRG_STAT_NOT_CHARGING:
+		*status = CHARGER_STATUS_NOT_CHARGING;
+		break;
+
+	case BQ24295_CHRG_STAT_PRECHARGE:
+	case BQ24295_CHRG_STAT_FASTCHARGE:
+		*status = CHARGER_STATUS_CHARGING;
+		break;
+
+	case BQ24295_CHRG_STAT_DONE:
+		*status = CHARGER_STATUS_FULL;
+		break;
+
+	default:
+		return -EIO;
+	}
+
+	return 0;
+}
+
 static int bq24295_gpio_init(const struct device *dev)
 {
 	const struct bq24295_config *config = dev->config;
@@ -387,6 +424,9 @@ static int bq24295_get_property(const struct device *dev, const charger_prop_t p
 	switch (prop) {
 	case CHARGER_PROP_ONLINE:
 		return bq24295_get_online(dev, &val->online);
+
+	case CHARGER_PROP_STATUS:
+		return bq24295_get_status(dev, &val->status);
 
 	default:
 		return -ENOTSUP;
