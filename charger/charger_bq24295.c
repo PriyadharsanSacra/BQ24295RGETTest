@@ -438,6 +438,24 @@ static int bq24295_get_health(const struct device *dev,
 	return 0;
 }
 
+static int bq24295_get_constant_charge_current(const struct device *dev, uint32_t *current_ua)
+{
+	uint8_t ichg;
+	int ret;
+
+	ret = bq24295_field_read(dev,
+				BQ24295_REG_CHARGE_CURRENT,
+				BQ24295_ICHG_MASK,
+				&ichg);
+	if (ret < 0) {
+		return ret;
+	}
+
+	*current_ua = BQ24295_ICHG_OFFSET_UA + (ichg * BQ24295_ICHG_STEP_UA);
+
+	return 0;
+}
+
 static int bq24295_gpio_init(const struct device *dev)
 {
 	const struct bq24295_config *config = dev->config;
@@ -506,6 +524,8 @@ static int bq24295_get_property(const struct device *dev, const charger_prop_t p
 		return bq24295_charger_get_charge_type(dev, &val->charge_type);
 	case CHARGER_PROP_HEALTH:
 		return bq24295_get_health(dev, &val->health);
+	case CHARGER_PROP_CONSTANT_CHARGE_CURRENT_UA:
+		return bq24295_get_constant_charge_current(dev, &val->const_charge_current_ua);
 	default:
 		return -ENOTSUP;
 	}
