@@ -176,7 +176,22 @@ int main(void)
 			printk("charger_get_prop() failed (%d)\n", ret);
 		}
 
-		k_sleep(K_SECONDS(5));
+		uint32_t new_current = 512000; /* 512 mA */
+		val.const_charge_current_ua = new_current;
+
+		ret = charger_set_prop(charger,
+				       CHARGER_PROP_CONSTANT_CHARGE_CURRENT_UA,
+				       &val);
+		if (ret == 0) {
+			printk("CONSTANT CHARGE CURRENT set to : %u uA\n",
+			       val.const_charge_current_ua);
+		} else if (ret == -ENOTSUP) {
+			printk("CONSTANT CHARGE CURRENT property not supported\n");
+		} else {
+			printk("charger_set_prop() failed (%d)\n", ret);
+		}
+
+		k_sleep(K_SECONDS(10));
 	}
 
 	return 0;

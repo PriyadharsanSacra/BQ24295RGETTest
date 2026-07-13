@@ -526,6 +526,25 @@ static int bq24295_get_vindpm(const struct device *dev, uint32_t *voltage_uv)
 	return 0;
 }
 
+static int bq24295_set_constant_charge_current(const struct device *dev, uint32_t current_ua)
+{
+	uint8_t ichg;
+
+	if (current_ua < BQ24295_ICHG_MIN_UA || current_ua > BQ24295_ICHG_MAX_UA) {
+		LOG_WRN("Charge current %u uA out of range, clamping",
+			current_ua);
+	}
+
+	current_ua = CLAMP(current_ua, BQ24295_ICHG_MIN_UA, BQ24295_ICHG_MAX_UA);
+	
+	ichg = (current_ua - BQ24295_ICHG_OFFSET_UA) / BQ24295_ICHG_STEP_UA;
+
+	return bq24295_field_write(dev,
+				BQ24295_REG_CHARGE_CURRENT,
+				BQ24295_ICHG_MASK,
+				ichg);
+}
+
 static int bq24295_gpio_init(const struct device *dev)
 {
 	const struct bq24295_config *config = dev->config;
@@ -610,11 +629,12 @@ static int bq24295_get_property(const struct device *dev, const charger_prop_t p
 static int bq24295_set_property(const struct device *dev, const charger_prop_t prop,
 				const union charger_propval *val)
 {
-	ARG_UNUSED(dev);
-	ARG_UNUSED(prop);
-	ARG_UNUSED(val);
-
-	return -ENOTSUP;
+	switch (prop) {
+	case CHARGER_PROP_CONSTANT_CHARGE_CURRENT_UA:
+		return bq24295_set_constant_charge_current(dev, val->const_charge_current_ua);
+	default:
+		return -ENOTSUP;
+	}
 }
 
 static int bq24295_charge_enable(const struct device *dev,
