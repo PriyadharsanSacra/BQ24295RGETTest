@@ -362,6 +362,13 @@ static int bq24295_get_status(const struct device *dev, enum charger_status *sta
 	return 0;
 }
 
+static int bq24295_charger_get_charge_type(const struct device *dev,
+					   enum charger_charge_type *charge_type)
+{
+	*charge_type = CHARGER_CHARGE_TYPE_UNKNOWN;
+	return 0;
+}
+
 static int bq24295_gpio_init(const struct device *dev)
 {
 	const struct bq24295_config *config = dev->config;
@@ -427,6 +434,9 @@ static int bq24295_get_property(const struct device *dev, const charger_prop_t p
 
 	case CHARGER_PROP_STATUS:
 		return bq24295_get_status(dev, &val->status);
+
+	case CHARGER_PROP_CHARGE_TYPE:
+		return bq24295_charger_get_charge_type(dev, &val->charge_type);
 
 	default:
 		return -ENOTSUP;
