@@ -140,6 +140,18 @@ int main(void)
 			printk("charger_get_prop() failed (%d)\n", ret);
 		}
 
+		ret = charger_get_prop(charger,
+				       CHARGER_PROP_CONSTANT_CHARGE_VOLTAGE_UV,
+				       &val);
+		if (ret == 0) {
+			printk("CONSTANT CHARGE VOLTAGE : %u uV\n",
+			       val.const_charge_voltage_uv);
+		} else if (ret == -ENOTSUP) {
+			printk("CONSTANT CHARGE VOLTAGE property not supported\n");
+		} else {
+			printk("charger_get_prop() failed (%d)\n", ret);
+		}
+
 		k_sleep(K_SECONDS(5));
 	}
 
