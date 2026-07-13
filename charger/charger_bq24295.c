@@ -176,12 +176,16 @@ LOG_MODULE_REGISTER(ti_bq24295, CONFIG_CHARGER_LOG_LEVEL);
 #define BQ24295_BAT_FAULT              		BIT(3)
 #define BQ24295_NTC_FAULT_MASK         		GENMASK(1, 0)
 
-#define BQ24295_CHRG_FAULT_NORMAL          	0x0
-#define BQ24295_CHRG_FAULT_INPUT           	0x1
-#define BQ24295_CHRG_FAULT_THERMAL_SHUTDOWN	0x2
-#define BQ24295_CHRG_FAULT_TIMER_EXPIRED   	0x3
+#define BQ24295_CHRG_FAULT_NORMAL      		0x0
+#define BQ24295_CHRG_FAULT_INPUT       		0x1
+#define BQ24295_CHRG_FAULT_THERMAL     		0x2
+#define BQ24295_CHRG_FAULT_TIMER       		0x3
 
-#define BQ24295_NTC_FAULT_NORMAL               	0x0
+#define BQ24295_NTC_FAULT_NORMAL    		0x0
+#define BQ24295_NTC_FAULT_COLD      		0x1
+#define BQ24295_NTC_FAULT_HOT       		0x2
+#define BQ24295_NTC_FAULT_RESERVED  		0x3
+
 
 /* Register 0x0A - Vendor / Part / Revision Status */
 #define BQ24295_REG_VENDOR             0x0A
@@ -308,12 +312,10 @@ static int bq24295_get_online(const struct device *dev, enum charger_online *onl
 	case BQ24295_VBUS_STAT_UNKNOWN:
 		*online = CHARGER_ONLINE_OFFLINE;
 		break;
-
 	case BQ24295_VBUS_STAT_USB_HOST:
 	case BQ24295_VBUS_STAT_ADAPTER:
 		*online = CHARGER_ONLINE_FIXED;
 		break;
-
 	case BQ24295_VBUS_STAT_OTG:
 		*online = CHARGER_ONLINE_OFFLINE;
 		break;
@@ -345,16 +347,13 @@ static int bq24295_get_status(const struct device *dev, enum charger_status *sta
 	case BQ24295_CHRG_STAT_NOT_CHARGING:
 		*status = CHARGER_STATUS_NOT_CHARGING;
 		break;
-
 	case BQ24295_CHRG_STAT_PRECHARGE:
 	case BQ24295_CHRG_STAT_FASTCHARGE:
 		*status = CHARGER_STATUS_CHARGING;
 		break;
-
 	case BQ24295_CHRG_STAT_DONE:
 		*status = CHARGER_STATUS_FULL;
 		break;
-
 	default:
 		return -EIO;
 	}
@@ -366,6 +365,76 @@ static int bq24295_charger_get_charge_type(const struct device *dev,
 					   enum charger_charge_type *charge_type)
 {
 	*charge_type = CHARGER_CHARGE_TYPE_UNKNOWN;
+	return 0;
+}
+
+static int bq24295_get_health(const struct device *dev,
+			      enum charger_health *health)
+{
+	uint8_t fault;
+	uint8_t chrg_fault;
+	uint8_t ntc_fault;
+	int ret;
+
+	/*
+	* REG09 is a latched fault register.
+	* Reading it acknowledges previously latched faults.
+	*/
+	ret = bq24295_reg_read(dev, BQ24295_REG_FAULT, &fault);
+	if (ret < 0) {
+		return ret;
+	}
+
+	printk("bq24295_get_health: fault=0x%02x\n", fault);
+
+	if (fault & BQ24295_BAT_FAULT) {
+		*health = CHARGER_HEALTH_OVERVOLTAGE;
+		return 0;
+	}
+	
+	ntc_fault = FIELD_GET(BQ24295_NTC_FAULT_MASK, fault);
+	
+	switch (ntc_fault) {
+	case BQ24295_NTC_FAULT_NORMAL:
+		break;
+	case BQ24295_NTC_FAULT_COLD:
+		*health = CHARGER_HEALTH_COLD;
+		return 0;
+	case BQ24295_NTC_FAULT_HOT:
+		*health = CHARGER_HEALTH_HOT;
+		return 0;
+	default:
+		LOG_WRN("Reserved NTC fault value: %u", ntc_fault);
+		*health = CHARGER_HEALTH_UNSPEC_FAILURE;
+		return 0;
+	}
+
+	if (fault & BQ24295_WATCHDOG_FAULT) {
+		*health = CHARGER_HEALTH_WATCHDOG_TIMER_EXPIRE;
+		return 0;
+	}
+
+	chrg_fault = FIELD_GET(BQ24295_CHRG_FAULT_MASK, fault);
+
+	switch (chrg_fault) {
+	case BQ24295_CHRG_FAULT_NORMAL:
+		break;
+	case BQ24295_CHRG_FAULT_INPUT:
+		*health = CHARGER_HEALTH_UNSPEC_FAILURE;
+		return 0;
+	case BQ24295_CHRG_FAULT_THERMAL:
+		*health = CHARGER_HEALTH_OVERHEAT;
+		return 0;
+	case BQ24295_CHRG_FAULT_TIMER:
+		*health = CHARGER_HEALTH_SAFETY_TIMER_EXPIRE;
+		return 0;
+	default:
+		LOG_ERR("Invalid CHRG_FAULT value: %u", chrg_fault);
+		return -EIO;
+	}
+
+	*health = CHARGER_HEALTH_GOOD;
+
 	return 0;
 }
 
@@ -431,13 +500,12 @@ static int bq24295_get_property(const struct device *dev, const charger_prop_t p
 	switch (prop) {
 	case CHARGER_PROP_ONLINE:
 		return bq24295_get_online(dev, &val->online);
-
 	case CHARGER_PROP_STATUS:
 		return bq24295_get_status(dev, &val->status);
-
 	case CHARGER_PROP_CHARGE_TYPE:
 		return bq24295_charger_get_charge_type(dev, &val->charge_type);
-
+	case CHARGER_PROP_HEALTH:
+		return bq24295_get_health(dev, &val->health);
 	default:
 		return -ENOTSUP;
 	}
