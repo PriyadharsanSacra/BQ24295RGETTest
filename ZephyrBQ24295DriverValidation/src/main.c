@@ -152,6 +152,18 @@ int main(void)
 			printk("charger_get_prop() failed (%d)\n", ret);
 		}
 
+		ret = charger_get_prop(charger,
+				       CHARGER_PROP_INPUT_REGULATION_CURRENT_UA,
+				       &val);
+		if (ret == 0) {
+			printk("INPUT REGULATION CURRENT : %u uA\n",
+			       val.input_current_regulation_current_ua);
+		} else if (ret == -ENOTSUP) {
+			printk("INPUT REGULATION CURRENT property not supported\n");
+		} else {
+			printk("charger_get_prop() failed (%d)\n", ret);
+		}
+
 		k_sleep(K_SECONDS(5));
 	}
 
