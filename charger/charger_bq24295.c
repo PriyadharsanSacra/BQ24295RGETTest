@@ -545,6 +545,25 @@ static int bq24295_set_constant_charge_current(const struct device *dev, uint32_
 				ichg);
 }
 
+static int bq24295_set_constant_charge_voltage(const struct device *dev, uint32_t voltage_uv)
+{
+	uint8_t vreg;
+
+	if (voltage_uv < BQ24295_VREG_MIN_UV || voltage_uv > BQ24295_VREG_MAX_UV) {
+		LOG_WRN("Charge voltage %u uV out of range, clamping",
+			voltage_uv);
+	}
+
+	voltage_uv = CLAMP(voltage_uv, BQ24295_VREG_MIN_UV, BQ24295_VREG_MAX_UV);
+
+	vreg = (voltage_uv - BQ24295_VREG_OFFSET_UV) / BQ24295_VREG_STEP_UV;
+
+	return bq24295_field_write(dev,
+				BQ24295_REG_CHARGE_VOLTAGE,
+				BQ24295_VREG_MASK,
+				vreg);
+}
+
 static int bq24295_gpio_init(const struct device *dev)
 {
 	const struct bq24295_config *config = dev->config;
@@ -632,6 +651,8 @@ static int bq24295_set_property(const struct device *dev, const charger_prop_t p
 	switch (prop) {
 	case CHARGER_PROP_CONSTANT_CHARGE_CURRENT_UA:
 		return bq24295_set_constant_charge_current(dev, val->const_charge_current_ua);
+	case CHARGER_PROP_CONSTANT_CHARGE_VOLTAGE_UV:
+		return bq24295_set_constant_charge_voltage(dev, val->const_charge_voltage_uv);
 	default:
 		return -ENOTSUP;
 	}

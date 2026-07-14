@@ -191,6 +191,21 @@ int main(void)
 			printk("charger_set_prop() failed (%d)\n", ret);
 		}
 
+		uint32_t new_voltage = 4208000; /* 4.2 V */
+		val.const_charge_voltage_uv = new_voltage;
+
+		ret = charger_set_prop(charger,
+				       CHARGER_PROP_CONSTANT_CHARGE_VOLTAGE_UV,
+				       &val);
+		if (ret == 0) {
+			printk("CONSTANT CHARGE VOLTAGE set to : %u uV\n",
+			       val.const_charge_voltage_uv);
+		} else if (ret == -ENOTSUP) {
+			printk("CONSTANT CHARGE VOLTAGE property not supported\n");
+		} else {
+			printk("charger_set_prop() failed (%d)\n", ret);
+		}
+
 		k_sleep(K_SECONDS(10));
 	}
 
