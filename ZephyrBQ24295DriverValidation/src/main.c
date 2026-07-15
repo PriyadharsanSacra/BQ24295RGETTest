@@ -206,6 +206,22 @@ int main(void)
 			printk("charger_set_prop() failed (%d)\n", ret);
 		}
 
+		uint32_t new_input_current = 900000; /* 3000 mA */
+		val.input_current_regulation_current_ua = new_input_current;
+
+		ret = charger_set_prop(charger,
+				       CHARGER_PROP_INPUT_REGULATION_CURRENT_UA,
+				       &val);
+		if (ret == 0) {
+			printk("INPUT REGULATION CURRENT set to : %u uA\n",
+			       val.input_current_regulation_current_ua);
+		} else if (ret == -ENOTSUP) {
+			printk("INPUT REGULATION CURRENT property not supported\n");
+		} else {
+			printk("charger_set_prop() failed (%d)\n", ret);
+		}
+
+
 		k_sleep(K_SECONDS(10));
 	}
 

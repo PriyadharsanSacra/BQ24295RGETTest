@@ -564,6 +564,31 @@ static int bq24295_set_constant_charge_voltage(const struct device *dev, uint32_
 				vreg);
 }
 
+static int bq24295_set_input_current_limit(const struct device *dev, uint32_t current_ua)
+{
+	uint8_t i;
+
+	if (current_ua < bq24295_iinlim_table[0] ||
+	current_ua > bq24295_iinlim_table[ARRAY_SIZE(bq24295_iinlim_table) - 1]) {
+		LOG_WRN("Input current %u uA out of range, clamping", current_ua);
+	}
+
+	current_ua = CLAMP(current_ua,
+			bq24295_iinlim_table[0],
+			bq24295_iinlim_table[ARRAY_SIZE(bq24295_iinlim_table) - 1]);
+
+	for (i = 0; i < ARRAY_SIZE(bq24295_iinlim_table); i++) {
+		if (current_ua <= bq24295_iinlim_table[i]) {
+			break;
+		}
+	}
+
+	return bq24295_field_write(dev,
+				BQ24295_REG_INPUT_SRC_CTRL,
+				BQ24295_IINLIM_MASK,
+				i);
+}
+	
 static int bq24295_gpio_init(const struct device *dev)
 {
 	const struct bq24295_config *config = dev->config;
@@ -653,6 +678,8 @@ static int bq24295_set_property(const struct device *dev, const charger_prop_t p
 		return bq24295_set_constant_charge_current(dev, val->const_charge_current_ua);
 	case CHARGER_PROP_CONSTANT_CHARGE_VOLTAGE_UV:
 		return bq24295_set_constant_charge_voltage(dev, val->const_charge_voltage_uv);
+	case CHARGER_PROP_INPUT_REGULATION_CURRENT_UA:
+		return bq24295_set_input_current_limit(dev, val->input_current_regulation_current_ua);
 	default:
 		return -ENOTSUP;
 	}
