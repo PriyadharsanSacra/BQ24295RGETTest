@@ -588,6 +588,26 @@ static int bq24295_set_input_current_limit(const struct device *dev, uint32_t cu
 				BQ24295_IINLIM_MASK,
 				i);
 }
+
+static int bq24295_set_vindpm(const struct device *dev, uint32_t voltage_uv)
+{
+	uint8_t vindpm;
+
+	if (voltage_uv < BQ24295_VINDPM_MIN_UV ||
+		voltage_uv > BQ24295_VINDPM_MAX_UV) {
+		LOG_WRN("Input regulation voltage %u uV out of range, clamping",
+		voltage_uv);
+	}
+
+	voltage_uv = CLAMP(voltage_uv, BQ24295_VINDPM_MIN_UV, BQ24295_VINDPM_MAX_UV);
+
+	vindpm = (voltage_uv - BQ24295_VINDPM_OFFSET_UV) / BQ24295_VINDPM_STEP_UV;
+
+	return bq24295_field_write(dev,
+		BQ24295_REG_INPUT_SRC_CTRL,
+		BQ24295_VINDPM_MASK,
+		vindpm);
+}
 	
 static int bq24295_gpio_init(const struct device *dev)
 {
@@ -680,6 +700,8 @@ static int bq24295_set_property(const struct device *dev, const charger_prop_t p
 		return bq24295_set_constant_charge_voltage(dev, val->const_charge_voltage_uv);
 	case CHARGER_PROP_INPUT_REGULATION_CURRENT_UA:
 		return bq24295_set_input_current_limit(dev, val->input_current_regulation_current_ua);
+	case CHARGER_PROP_INPUT_REGULATION_VOLTAGE_UV:
+		return bq24295_set_vindpm(dev, val->input_voltage_regulation_voltage_uv);
 	default:
 		return -ENOTSUP;
 	}

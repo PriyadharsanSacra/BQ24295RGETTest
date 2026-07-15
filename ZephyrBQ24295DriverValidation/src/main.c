@@ -221,6 +221,21 @@ int main(void)
 			printk("charger_set_prop() failed (%d)\n", ret);
 		}
 
+		uint32_t new_input_voltage = 4760000; /* 4.76 V */
+		val.input_voltage_regulation_voltage_uv = new_input_voltage;
+
+		ret = charger_set_prop(charger,
+				       CHARGER_PROP_INPUT_REGULATION_VOLTAGE_UV,
+				       &val);
+		if (ret == 0) {
+			printk("INPUT REGULATION VOLTAGE set to : %u uV\n",
+			       val.input_voltage_regulation_voltage_uv);
+		} else if (ret == -ENOTSUP) {
+			printk("INPUT REGULATION VOLTAGE property not supported\n");
+		} else {
+			printk("charger_set_prop() failed (%d)\n", ret);
+		}
+
 
 		k_sleep(K_SECONDS(10));
 	}
