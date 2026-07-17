@@ -141,6 +141,18 @@ int main(void)
 		}
 
 		ret = charger_get_prop(charger,
+				       CHARGER_PROP_PRECHARGE_CURRENT_UA,
+				       &val);
+		if (ret == 0) {
+			printk("PRECHARGE CURRENT : %u uA\n",
+			       val.precharge_current_ua);
+		} else if (ret == -ENOTSUP) {
+			printk("PRECHARGE CURRENT property not supported\n");
+		} else {
+			printk("charger_get_prop() failed (%d)\n", ret);
+		}
+
+		ret = charger_get_prop(charger,
 				       CHARGER_PROP_CONSTANT_CHARGE_VOLTAGE_UV,
 				       &val);
 		if (ret == 0) {
@@ -243,6 +255,17 @@ int main(void)
 			printk("CHARGING DISABLE property not supported\n");
 		} else {
 			printk("charger_charge_enable() failed (%d)\n", ret);
+		}
+
+		uint32_t precharge_current = 512000; /* 512 mA */
+		val.precharge_current_ua = precharge_current;
+		ret = charger_set_prop(charger, CHARGER_PROP_PRECHARGE_CURRENT_UA, &val);
+		if (ret == 0) {
+			printk("PRECHARGE CURRENT set to : %u uA\n", val.precharge_current_ua);
+		} else if (ret == -ENOTSUP) {
+			printk("PRECHARGE CURRENT property not supported\n");
+		} else {
+			printk("charger_set_prop() failed (%d)\n", ret);
 		}
 
 		k_sleep(K_SECONDS(10));

@@ -467,6 +467,24 @@ static int bq24295_get_constant_charge_current(const struct device *dev, uint32_
 	return 0;
 }
 
+static int bq24295_get_precharge_current(const struct device *dev, uint32_t *current_ua)
+{
+	uint8_t iprechg;
+	int ret;
+
+	ret = bq24295_field_read(dev,
+				BQ24295_REG_PRECHG_TERM_CURRENT,
+				BQ24295_IPRECHG_MASK,
+				&iprechg);
+	if (ret < 0) {
+		return ret;
+	}
+
+	*current_ua = BQ24295_IPRECHG_OFFSET_UA + (iprechg * BQ24295_IPRECHG_STEP_UA);
+
+	return 0;
+}
+
 static int bq24295_get_constant_charge_voltage(const struct device *dev, uint32_t *voltage_uv)
 {
 	uint8_t vreg;
@@ -543,6 +561,29 @@ static int bq24295_set_constant_charge_current(const struct device *dev, uint32_
 				BQ24295_REG_CHARGE_CURRENT,
 				BQ24295_ICHG_MASK,
 				ichg);
+}
+
+static int bq24295_set_precharge_current(const struct device *dev,
+					uint32_t current_ua)
+{
+	uint8_t iprechg;
+
+	if (current_ua < BQ24295_IPRECHG_MIN_UA ||
+	    current_ua > BQ24295_IPRECHG_MAX_UA) {
+		LOG_WRN("Precharge current %u uA out of range, clamping",
+			current_ua);
+	}
+
+	current_ua = CLAMP(current_ua,
+			    BQ24295_IPRECHG_MIN_UA,
+			    BQ24295_IPRECHG_MAX_UA);
+
+	iprechg = (current_ua - BQ24295_IPRECHG_OFFSET_UA) / BQ24295_IPRECHG_STEP_UA;
+
+	return bq24295_field_write(dev,
+				BQ24295_REG_PRECHG_TERM_CURRENT,
+				BQ24295_IPRECHG_MASK,
+				iprechg);
 }
 
 static int bq24295_set_constant_charge_voltage(const struct device *dev, uint32_t voltage_uv)
@@ -679,6 +720,8 @@ static int bq24295_get_property(const struct device *dev, const charger_prop_t p
 		return bq24295_get_health(dev, &val->health);
 	case CHARGER_PROP_CONSTANT_CHARGE_CURRENT_UA:
 		return bq24295_get_constant_charge_current(dev, &val->const_charge_current_ua);
+	case CHARGER_PROP_PRECHARGE_CURRENT_UA:
+		return bq24295_get_precharge_current(dev, &val->precharge_current_ua);
 	case CHARGER_PROP_CONSTANT_CHARGE_VOLTAGE_UV:
 		return bq24295_get_constant_charge_voltage(dev, &val->const_charge_voltage_uv);
 	case CHARGER_PROP_INPUT_REGULATION_CURRENT_UA:
@@ -702,6 +745,8 @@ static int bq24295_set_property(const struct device *dev, const charger_prop_t p
 		return bq24295_set_input_current_limit(dev, val->input_current_regulation_current_ua);
 	case CHARGER_PROP_INPUT_REGULATION_VOLTAGE_UV:
 		return bq24295_set_vindpm(dev, val->input_voltage_regulation_voltage_uv);
+	case CHARGER_PROP_PRECHARGE_CURRENT_UA:
+		return bq24295_set_precharge_current(dev, val->precharge_current_ua);
 	default:
 		return -ENOTSUP;
 	}
