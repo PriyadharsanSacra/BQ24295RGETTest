@@ -41,13 +41,14 @@ LOG_MODULE_REGISTER(ti_bq24295, CONFIG_CHARGER_LOG_LEVEL);
 /* Register 0x01 - Power-On Configuration */
 #define BQ24295_REG_POWER_ON_CONFIG      0x01
 
-#define BQ24295_BOOST_LIM              	BIT(0)
-#define BQ24295_SYS_MIN_MASK           	GENMASK(3, 1)
-#define BQ24295_CHG_CONFIG             	BIT(4)
-#define BQ24295_OTG_CONFIG             	BIT(5)
-#define BQ24295_WDT_RESET              	BIT(6)
 #define BQ24295_REG_RESET              	BIT(7)
+#define BQ24295_WDT_RESET              	BIT(6)
+#define BQ24295_CHG_CONFIG_MASK      	GENMASK(5, 4)
+#define BQ24295_SYS_MIN_MASK           	GENMASK(3, 1)
 
+#define BQ24295_CHG_DISABLE          	0x0
+#define BQ24295_CHG_ENABLE           	0x1
+#define BQ24295_OTG_ENABLE           	0x2
 #define BQ24295_SYS_MIN_OFFSET_UV	3000000
 #define BQ24295_SYS_MIN_STEP_UV  	100000
 #define BQ24295_SYS_MIN_MIN_UV   	3000000
@@ -185,7 +186,6 @@ LOG_MODULE_REGISTER(ti_bq24295, CONFIG_CHARGER_LOG_LEVEL);
 #define BQ24295_NTC_FAULT_COLD      		0x1
 #define BQ24295_NTC_FAULT_HOT       		0x2
 #define BQ24295_NTC_FAULT_RESERVED  		0x3
-
 
 /* Register 0x0A - Vendor / Part / Revision Status */
 #define BQ24295_REG_VENDOR             0x0A
@@ -707,17 +707,19 @@ static int bq24295_set_property(const struct device *dev, const charger_prop_t p
 	}
 }
 
-static int bq24295_charge_enable(const struct device *dev,
-				 const bool enable)
+static int bq24295_charge_enable(const struct device *dev, bool enable)
 {
-	ARG_UNUSED(dev);
-	ARG_UNUSED(enable);
+	uint8_t value;
 
-	return -ENOTSUP;
+	value = enable ? BQ24295_CHG_ENABLE : BQ24295_CHG_DISABLE;
+
+	return bq24295_field_write(dev,
+				BQ24295_REG_POWER_ON_CONFIG,
+				BQ24295_CHG_CONFIG_MASK,
+				value);
 }
 
 static int test_helpers(const struct device *dev)
-
 {
 	int ret;
 	/*Validate all registers*/

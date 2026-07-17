@@ -236,6 +236,14 @@ int main(void)
 			printk("charger_set_prop() failed (%d)\n", ret);
 		}
 
+		ret = charger_charge_enable(charger, false);
+		if (ret == 0) {
+			printk("CHARGING DISABLED\n");
+		} else if (ret == -ENOTSUP) {
+			printk("CHARGING DISABLE property not supported\n");
+		} else {
+			printk("charger_charge_enable() failed (%d)\n", ret);
+		}
 
 		k_sleep(K_SECONDS(10));
 	}
