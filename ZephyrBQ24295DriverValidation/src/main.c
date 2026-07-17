@@ -153,6 +153,18 @@ int main(void)
 		}
 
 		ret = charger_get_prop(charger,
+				       CHARGER_PROP_CHARGE_TERM_CURRENT_UA,
+				       &val);
+		if (ret == 0) {
+			printk("CHARGE TERMINATION CURRENT : %u uA\n",
+			       val.charge_term_current_ua);
+		} else if (ret == -ENOTSUP) {
+			printk("CHARGE TERMINATION CURRENT property not supported\n");
+		} else {
+			printk("charger_get_prop() failed (%d)\n", ret);
+		}
+
+		ret = charger_get_prop(charger,
 				       CHARGER_PROP_CONSTANT_CHARGE_VOLTAGE_UV,
 				       &val);
 		if (ret == 0) {
@@ -264,6 +276,17 @@ int main(void)
 			printk("PRECHARGE CURRENT set to : %u uA\n", val.precharge_current_ua);
 		} else if (ret == -ENOTSUP) {
 			printk("PRECHARGE CURRENT property not supported\n");
+		} else {
+			printk("charger_set_prop() failed (%d)\n", ret);
+		}
+
+		uint32_t termination_current = 512000; /* 512 mA */
+		val.charge_term_current_ua = termination_current;
+		ret = charger_set_prop(charger, CHARGER_PROP_CHARGE_TERM_CURRENT_UA, &val);
+		if (ret == 0) {
+			printk("CHARGE TERMINATION CURRENT set to : %u uA\n", val.charge_term_current_ua);
+		} else if (ret == -ENOTSUP) {
+			printk("CHARGE TERMINATION CURRENT property not supported\n");
 		} else {
 			printk("charger_set_prop() failed (%d)\n", ret);
 		}
