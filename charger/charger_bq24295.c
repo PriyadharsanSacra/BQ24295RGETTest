@@ -198,8 +198,6 @@ LOG_MODULE_REGISTER(ti_bq24295, CONFIG_CHARGER_LOG_LEVEL);
 struct bq24295_config {
 	struct i2c_dt_spec i2c;
 	struct gpio_dt_spec ce_gpio;
-	struct gpio_dt_spec int_gpio;
-	struct gpio_dt_spec stat_gpio;
 };
 
 struct bq24295_data {
@@ -705,40 +703,13 @@ static int bq24295_gpio_init(const struct device *dev)
 
 		ret = gpio_pin_configure_dt(&config->ce_gpio,
 					    GPIO_OUTPUT_INACTIVE);
+
 		if (ret < 0) {
 			LOG_ERR("Failed to configure CE GPIO (%d)", ret);
 			return ret;
 		}
-	}
-
-	/* INT GPIO (optional) */
-	if (config->int_gpio.port != NULL) {
-		if (!gpio_is_ready_dt(&config->int_gpio)) {
-			LOG_ERR("INT GPIO not ready");
-			return -ENODEV;
-		}
-
-		ret = gpio_pin_configure_dt(&config->int_gpio,
-					    GPIO_INPUT);
-		if (ret < 0) {
-			LOG_ERR("Failed to configure INT GPIO (%d)", ret);
-			return ret;
-		}
-	}
-
-	/* STAT GPIO (optional) */
-	if (config->stat_gpio.port != NULL) {
-		if (!gpio_is_ready_dt(&config->stat_gpio)) {
-			LOG_ERR("STAT GPIO not ready");
-			return -ENODEV;
-		}
-
-		ret = gpio_pin_configure_dt(&config->stat_gpio,
-					    GPIO_INPUT);
-		if (ret < 0) {
-			LOG_ERR("Failed to configure STAT GPIO (%d)", ret);
-			return ret;
-		}
+	} else {
+		LOG_INF("CE GPIO not configured");
 	}
 
 	return 0;
@@ -809,45 +780,6 @@ static int bq24295_charge_enable(const struct device *dev, bool enable)
 				value);
 }
 
-static int test_helpers(const struct device *dev)
-{
-	int ret;
-	/*Validate all registers*/
-	for (uint8_t reg = 0; reg <= 0x0A; reg++) {
-		uint8_t value;
-		int ret;
-
-		ret = bq24295_reg_read(dev, reg, &value);
-		if (ret) {
-			printk("REG%02X read failed\n", reg);
-		} else {
-			printk("REG%02X = 0x%02X\n", reg, value);
-		}
-	}
-
-	uint8_t part;
-
-	ret = bq24295_field_read(dev,
-				BQ24295_REG_VENDOR,
-				BQ24295_PART_NUMBER_MASK,
-				&part);
-
-	printk("Part = %u\n", part);
-
-	bool pg;
-
-	ret = bq24295_test_bit(dev,
-			BQ24295_REG_SYSTEM_STATUS,
-			BQ24295_PG_STAT,
-			&pg);
-
-	printk("PG=%d\n", pg);
-
-	uint8_t reg_value;
-
-	return 0;
-}
-
 static int bq24295_init(const struct device *dev)
 {
 	const struct bq24295_config *config = dev->config;
@@ -873,8 +805,6 @@ static int bq24295_init(const struct device *dev)
 		LOG_INF("GPIOs initialized successfully");
 	}
 
-	test_helpers(dev);
-
 	LOG_INF("BQ24295 initialized");
 
 	return 0;
@@ -890,8 +820,6 @@ static DEVICE_API(charger, bq24295_api) = {
     static struct bq24295_data data_##inst;                      \
     static const struct bq24295_config config_##inst = {         \
         .i2c = I2C_DT_SPEC_INST_GET(inst),                       \
-        .int_gpio = GPIO_DT_SPEC_INST_GET_OR(inst, int_gpios, {}), \
-        .stat_gpio = GPIO_DT_SPEC_INST_GET_OR(inst, stat_gpios, {}), \
         .ce_gpio = GPIO_DT_SPEC_INST_GET_OR(inst, ce_gpios, {}), \
     };                                                           \
                                                                  \

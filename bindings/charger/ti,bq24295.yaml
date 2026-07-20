@@ -31,16 +31,6 @@ properties:
     description: |
       Active-low charge enable pin.
 
-  int-gpios:
-    type: phandle-array
-    description: |
-      Active-low interrupt output.
-
-  stat-gpios:
-    type: phandle-array
-    description: |
-      Open-drain charger status output.
-
 examples:
   - |
     charger: bq24295@6b {
@@ -52,6 +42,4 @@ examples:
       constant-charge-voltage-max-microvolt = <4208000>;
 
       ce-gpios = <&gpio0 3 GPIO_ACTIVE_LOW>;
-      int-gpios = <&gpio0 4 GPIO_ACTIVE_LOW>;
-      stat-gpios = <&gpio0 21 GPIO_ACTIVE_LOW>;
     };
