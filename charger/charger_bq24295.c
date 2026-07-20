@@ -1,8 +1,8 @@
 /*
-* Copyright 2026 Sacra Systems Private Limited.
-*
-* SPDX-License-Identifier: Apache-2.0
-*/
+ * Copyright 2026 Sacra Systems Private Limited.
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
 
 #define DT_DRV_COMPAT ti_bq24295
 
@@ -19,181 +19,181 @@
 LOG_MODULE_REGISTER(ti_bq24295, CONFIG_CHARGER_LOG_LEVEL);
 
 /* Register 0x00 - Input Source Control */
-#define BQ24295_REG_INPUT_SRC_CTRL     	0x00
+#define BQ24295_REG_INPUT_SRC_CTRL 0x00
 
-#define BQ24295_IINLIM_MASK            	GENMASK(2, 0)
-#define BQ24295_VINDPM_MASK            	GENMASK(6, 3)
-#define BQ24295_EN_HIZ                 	BIT(7)
+#define BQ24295_IINLIM_MASK GENMASK(2, 0)
+#define BQ24295_VINDPM_MASK GENMASK(6, 3)
+#define BQ24295_EN_HIZ      BIT(7)
 
-#define BQ24295_IINLIM_SEL_100MA   	0x0
-#define BQ24295_IINLIM_SEL_150MA   	0x1
-#define BQ24295_IINLIM_SEL_500MA   	0x2
-#define BQ24295_IINLIM_SEL_900MA   	0x3
-#define BQ24295_IINLIM_SEL_1000MA  	0x4
-#define BQ24295_IINLIM_SEL_1500MA  	0x5
-#define BQ24295_IINLIM_SEL_2000MA  	0x6
-#define BQ24295_IINLIM_SEL_3000MA  	0x7
-#define BQ24295_VINDPM_OFFSET_UV       	3880000
-#define BQ24295_VINDPM_STEP_UV         	80000
-#define BQ24295_VINDPM_MIN_UV          	3880000
-#define BQ24295_VINDPM_MAX_UV          	5080000
+#define BQ24295_IINLIM_SEL_100MA  0x0
+#define BQ24295_IINLIM_SEL_150MA  0x1
+#define BQ24295_IINLIM_SEL_500MA  0x2
+#define BQ24295_IINLIM_SEL_900MA  0x3
+#define BQ24295_IINLIM_SEL_1000MA 0x4
+#define BQ24295_IINLIM_SEL_1500MA 0x5
+#define BQ24295_IINLIM_SEL_2000MA 0x6
+#define BQ24295_IINLIM_SEL_3000MA 0x7
+#define BQ24295_VINDPM_OFFSET_UV  3880000
+#define BQ24295_VINDPM_STEP_UV    80000
+#define BQ24295_VINDPM_MIN_UV     3880000
+#define BQ24295_VINDPM_MAX_UV     5080000
 
 /* Register 0x01 - Power-On Configuration */
-#define BQ24295_REG_POWER_ON_CONFIG      0x01
+#define BQ24295_REG_POWER_ON_CONFIG 0x01
 
-#define BQ24295_REG_RESET              	BIT(7)
-#define BQ24295_WDT_RESET              	BIT(6)
-#define BQ24295_CHG_CONFIG_MASK      	GENMASK(5, 4)
-#define BQ24295_SYS_MIN_MASK           	GENMASK(3, 1)
+#define BQ24295_REG_RESET       BIT(7)
+#define BQ24295_WDT_RESET       BIT(6)
+#define BQ24295_CHG_CONFIG_MASK GENMASK(5, 4)
+#define BQ24295_SYS_MIN_MASK    GENMASK(3, 1)
 
-#define BQ24295_CHG_DISABLE          	0x0
-#define BQ24295_CHG_ENABLE           	0x1
-#define BQ24295_OTG_ENABLE           	0x2
-#define BQ24295_SYS_MIN_OFFSET_UV	3000000
-#define BQ24295_SYS_MIN_STEP_UV  	100000
-#define BQ24295_SYS_MIN_MIN_UV   	3000000
-#define BQ24295_SYS_MIN_MAX_UV   	3700000
+#define BQ24295_CHG_DISABLE       0x0
+#define BQ24295_CHG_ENABLE        0x1
+#define BQ24295_OTG_ENABLE        0x2
+#define BQ24295_SYS_MIN_OFFSET_UV 3000000
+#define BQ24295_SYS_MIN_STEP_UV   100000
+#define BQ24295_SYS_MIN_MIN_UV    3000000
+#define BQ24295_SYS_MIN_MAX_UV    3700000
 
 /* Register 0x02 - Charge Current Control */
-#define BQ24295_REG_CHARGE_CURRENT      0x02
+#define BQ24295_REG_CHARGE_CURRENT 0x02
 
-#define BQ24295_FORCE_20PCT             BIT(0)
-#define BQ24295_BCOLD                   BIT(1)
-#define BQ24295_ICHG_MASK               GENMASK(7, 2)
+#define BQ24295_FORCE_20PCT BIT(0)
+#define BQ24295_BCOLD       BIT(1)
+#define BQ24295_ICHG_MASK   GENMASK(7, 2)
 
-#define BQ24295_BCOLD_SEL_76_PERCENT    0
-#define BQ24295_BCOLD_SEL_79_PERCENT    1
-#define BQ24295_ICHG_OFFSET_UA          512000
-#define BQ24295_ICHG_STEP_UA            64000
-#define BQ24295_ICHG_MIN_UA             512000
-#define BQ24295_ICHG_MAX_UA            	3008000
+#define BQ24295_BCOLD_SEL_76_PERCENT 0
+#define BQ24295_BCOLD_SEL_79_PERCENT 1
+#define BQ24295_ICHG_OFFSET_UA       512000
+#define BQ24295_ICHG_STEP_UA         64000
+#define BQ24295_ICHG_MIN_UA          512000
+#define BQ24295_ICHG_MAX_UA          3008000
 
 /* Register 0x03 - Pre-Charge and Termination Current Control */
-#define BQ24295_REG_PRECHG_TERM_CURRENT	0x03
+#define BQ24295_REG_PRECHG_TERM_CURRENT 0x03
 
-#define BQ24295_IPRECHG_MASK           	GENMASK(7,4)
-#define BQ24295_ITERM_MASK             	GENMASK(3,0)
+#define BQ24295_IPRECHG_MASK GENMASK(7, 4)
+#define BQ24295_ITERM_MASK   GENMASK(3, 0)
 
-#define BQ24295_IPRECHG_OFFSET_UA      	128000
-#define BQ24295_IPRECHG_STEP_UA        	128000
-#define BQ24295_IPRECHG_MIN_UA         	128000
-#define BQ24295_IPRECHG_MAX_UA        	2048000
-#define BQ24295_ITERM_OFFSET_UA        	128000
-#define BQ24295_ITERM_STEP_UA          	128000
-#define BQ24295_ITERM_MIN_UA           	128000
-#define BQ24295_ITERM_MAX_UA          	2048000
+#define BQ24295_IPRECHG_OFFSET_UA 128000
+#define BQ24295_IPRECHG_STEP_UA   128000
+#define BQ24295_IPRECHG_MIN_UA    128000
+#define BQ24295_IPRECHG_MAX_UA    2048000
+#define BQ24295_ITERM_OFFSET_UA   128000
+#define BQ24295_ITERM_STEP_UA     128000
+#define BQ24295_ITERM_MIN_UA      128000
+#define BQ24295_ITERM_MAX_UA      2048000
 
 /* Register 0x04 - Charge Voltage Control */
-#define BQ24295_REG_CHARGE_VOLTAGE	0x04
+#define BQ24295_REG_CHARGE_VOLTAGE 0x04
 
-#define BQ24295_VREG_MASK             	GENMASK(7, 2)
-#define BQ24295_BATLOWV               	BIT(1)
-#define BQ24295_VRECHG                	BIT(0)
+#define BQ24295_VREG_MASK GENMASK(7, 2)
+#define BQ24295_BATLOWV   BIT(1)
+#define BQ24295_VRECHG    BIT(0)
 
-#define BQ24295_VREG_OFFSET_UV       	3504000
-#define BQ24295_VREG_STEP_UV         	16000
-#define BQ24295_VREG_MIN_UV          	3504000
-#define BQ24295_VREG_MAX_UV          	4400000
-#define BQ24295_BATLOWV_SEL_2800MV     	0
-#define BQ24295_BATLOWV_SEL_3000MV     	1
-#define BQ24295_VRECHG_SEL_100MV       	0
-#define BQ24295_VRECHG_SEL_300MV       	1
+#define BQ24295_VREG_OFFSET_UV     3504000
+#define BQ24295_VREG_STEP_UV       16000
+#define BQ24295_VREG_MIN_UV        3504000
+#define BQ24295_VREG_MAX_UV        4400000
+#define BQ24295_BATLOWV_SEL_2800MV 0
+#define BQ24295_BATLOWV_SEL_3000MV 1
+#define BQ24295_VRECHG_SEL_100MV   0
+#define BQ24295_VRECHG_SEL_300MV   1
 
 /* Register 0x05 - Charge Termination/Timer Control */
-#define BQ24295_REG_CHARGE_TERM_TIMER  	0x05
+#define BQ24295_REG_CHARGE_TERM_TIMER 0x05
 
-#define BQ24295_EN_TERM               	BIT(7)
-#define BQ24295_WATCHDOG_MASK         	GENMASK(5, 4)
-#define BQ24295_EN_TIMER              	BIT(3)
-#define BQ24295_CHG_TIMER_MASK        	GENMASK(2, 1)
+#define BQ24295_EN_TERM        BIT(7)
+#define BQ24295_WATCHDOG_MASK  GENMASK(5, 4)
+#define BQ24295_EN_TIMER       BIT(3)
+#define BQ24295_CHG_TIMER_MASK GENMASK(2, 1)
 
-#define BQ24295_WATCHDOG_SEL_DISABLE   	0x0
-#define BQ24295_WATCHDOG_SEL_40S       	0x1
-#define BQ24295_WATCHDOG_SEL_80S       	0x2
-#define BQ24295_WATCHDOG_SEL_160S      	0x3
-#define BQ24295_CHG_TIMER_SEL_5H       	0x0
-#define BQ24295_CHG_TIMER_SEL_8H       	0x1
-#define BQ24295_CHG_TIMER_SEL_12H      	0x2
-#define BQ24295_CHG_TIMER_SEL_20H      	0x3
+#define BQ24295_WATCHDOG_SEL_DISABLE 0x0
+#define BQ24295_WATCHDOG_SEL_40S     0x1
+#define BQ24295_WATCHDOG_SEL_80S     0x2
+#define BQ24295_WATCHDOG_SEL_160S    0x3
+#define BQ24295_CHG_TIMER_SEL_5H     0x0
+#define BQ24295_CHG_TIMER_SEL_8H     0x1
+#define BQ24295_CHG_TIMER_SEL_12H    0x2
+#define BQ24295_CHG_TIMER_SEL_20H    0x3
 
 /* Register 0x06 - Boost Voltage / Thermal Regulation Control */
-#define BQ24295_REG_BOOST_THERMAL      	0x06
+#define BQ24295_REG_BOOST_THERMAL 0x06
 
-#define BQ24295_BOOSTV_MASK            	GENMASK(7, 4)
-#define BQ24295_BHOT_MASK              	GENMASK(3, 2)
-#define BQ24295_TREG_MASK              	GENMASK(1, 0)
+#define BQ24295_BOOSTV_MASK GENMASK(7, 4)
+#define BQ24295_BHOT_MASK   GENMASK(3, 2)
+#define BQ24295_TREG_MASK   GENMASK(1, 0)
 
-#define BQ24295_BOOSTV_OFFSET_UV       	4550000
-#define BQ24295_BOOSTV_STEP_UV         	64000
-#define BQ24295_BOOSTV_MIN_UV          	4550000
-#define BQ24295_BOOSTV_MAX_UV          	5510000
-#define BQ24295_BHOT_SEL_VBHOT1        	0x0
-#define BQ24295_BHOT_SEL_VBHOT0        	0x1
-#define BQ24295_BHOT_SEL_VBHOT2        	0x2
-#define BQ24295_BHOT_SEL_DISABLE       	0x3
-#define BQ24295_TREG_SEL_60C           	0x0
-#define BQ24295_TREG_SEL_80C           	0x1
-#define BQ24295_TREG_SEL_100C          	0x2
-#define BQ24295_TREG_SEL_120C          	0x3
+#define BQ24295_BOOSTV_OFFSET_UV 4550000
+#define BQ24295_BOOSTV_STEP_UV   64000
+#define BQ24295_BOOSTV_MIN_UV    4550000
+#define BQ24295_BOOSTV_MAX_UV    5510000
+#define BQ24295_BHOT_SEL_VBHOT1  0x0
+#define BQ24295_BHOT_SEL_VBHOT0  0x1
+#define BQ24295_BHOT_SEL_VBHOT2  0x2
+#define BQ24295_BHOT_SEL_DISABLE 0x3
+#define BQ24295_TREG_SEL_60C     0x0
+#define BQ24295_TREG_SEL_80C     0x1
+#define BQ24295_TREG_SEL_100C    0x2
+#define BQ24295_TREG_SEL_120C    0x3
 
 /* Register 0x07 - Misc Operation Control */
-#define BQ24295_REG_MISC_OPERATION     	0x07
+#define BQ24295_REG_MISC_OPERATION 0x07
 
-#define BQ24295_DPDM_EN              	BIT(7)
-#define BQ24295_TMR2X_EN             	BIT(6)
-#define BQ24295_BATFET_DISABLE       	BIT(5)
-#define BQ24295_INT_MASK_MASK        	GENMASK(1, 0)
+#define BQ24295_DPDM_EN        BIT(7)
+#define BQ24295_TMR2X_EN       BIT(6)
+#define BQ24295_BATFET_DISABLE BIT(5)
+#define BQ24295_INT_MASK_MASK  GENMASK(1, 0)
 
-#define BQ24295_INT_MASK_NONE          	0x0
-#define BQ24295_INT_MASK_BAT_FAULT     	BIT(0)
-#define BQ24295_INT_MASK_CHRG_FAULT    	BIT(1)
-#define BQ24295_INT_MASK_ALL           	GENMASK(1, 0)
+#define BQ24295_INT_MASK_NONE       0x0
+#define BQ24295_INT_MASK_BAT_FAULT  BIT(0)
+#define BQ24295_INT_MASK_CHRG_FAULT BIT(1)
+#define BQ24295_INT_MASK_ALL        GENMASK(1, 0)
 
 /* Register 0x08 - System Status */
-#define BQ24295_REG_SYSTEM_STATUS      	0x08
+#define BQ24295_REG_SYSTEM_STATUS 0x08
 
-#define BQ24295_VBUS_STAT_MASK         	GENMASK(7, 6)
-#define BQ24295_CHRG_STAT_MASK         	GENMASK(5, 4)
-#define BQ24295_DPM_STAT               	BIT(3)
-#define BQ24295_PG_STAT                	BIT(2)
-#define BQ24295_THERM_STAT             	BIT(1)
-#define BQ24295_VSYS_STAT              	BIT(0)
+#define BQ24295_VBUS_STAT_MASK GENMASK(7, 6)
+#define BQ24295_CHRG_STAT_MASK GENMASK(5, 4)
+#define BQ24295_DPM_STAT       BIT(3)
+#define BQ24295_PG_STAT        BIT(2)
+#define BQ24295_THERM_STAT     BIT(1)
+#define BQ24295_VSYS_STAT      BIT(0)
 
-#define BQ24295_VBUS_STAT_UNKNOWN      	0x0
-#define BQ24295_VBUS_STAT_USB_HOST     	0x1
-#define BQ24295_VBUS_STAT_ADAPTER      	0x2
-#define BQ24295_VBUS_STAT_OTG          	0x3
-#define BQ24295_CHRG_STAT_NOT_CHARGING 	0x0
-#define BQ24295_CHRG_STAT_PRECHARGE    	0x1
-#define BQ24295_CHRG_STAT_FASTCHARGE   	0x2
-#define BQ24295_CHRG_STAT_DONE         	0x3
+#define BQ24295_VBUS_STAT_UNKNOWN      0x0
+#define BQ24295_VBUS_STAT_USB_HOST     0x1
+#define BQ24295_VBUS_STAT_ADAPTER      0x2
+#define BQ24295_VBUS_STAT_OTG          0x3
+#define BQ24295_CHRG_STAT_NOT_CHARGING 0x0
+#define BQ24295_CHRG_STAT_PRECHARGE    0x1
+#define BQ24295_CHRG_STAT_FASTCHARGE   0x2
+#define BQ24295_CHRG_STAT_DONE         0x3
 
 /* Register 0x09 - Fault Register */
-#define BQ24295_REG_FAULT              		0x09
+#define BQ24295_REG_FAULT 0x09
 
-#define BQ24295_WATCHDOG_FAULT         		BIT(7)
-#define BQ24295_OTG_FAULT              		BIT(6)
-#define BQ24295_CHRG_FAULT_MASK        		GENMASK(5, 4)
-#define BQ24295_BAT_FAULT              		BIT(3)
-#define BQ24295_NTC_FAULT_MASK         		GENMASK(1, 0)
+#define BQ24295_WATCHDOG_FAULT  BIT(7)
+#define BQ24295_OTG_FAULT       BIT(6)
+#define BQ24295_CHRG_FAULT_MASK GENMASK(5, 4)
+#define BQ24295_BAT_FAULT       BIT(3)
+#define BQ24295_NTC_FAULT_MASK  GENMASK(1, 0)
 
-#define BQ24295_CHRG_FAULT_NORMAL      		0x0
-#define BQ24295_CHRG_FAULT_INPUT       		0x1
-#define BQ24295_CHRG_FAULT_THERMAL     		0x2
-#define BQ24295_CHRG_FAULT_TIMER       		0x3
+#define BQ24295_CHRG_FAULT_NORMAL  0x0
+#define BQ24295_CHRG_FAULT_INPUT   0x1
+#define BQ24295_CHRG_FAULT_THERMAL 0x2
+#define BQ24295_CHRG_FAULT_TIMER   0x3
 
-#define BQ24295_NTC_FAULT_NORMAL    		0x0
-#define BQ24295_NTC_FAULT_COLD      		0x1
-#define BQ24295_NTC_FAULT_HOT       		0x2
-#define BQ24295_NTC_FAULT_RESERVED  		0x3
+#define BQ24295_NTC_FAULT_NORMAL   0x0
+#define BQ24295_NTC_FAULT_COLD     0x1
+#define BQ24295_NTC_FAULT_HOT      0x2
+#define BQ24295_NTC_FAULT_RESERVED 0x3
 
 /* Register 0x0A - Vendor / Part / Revision Status */
-#define BQ24295_REG_VENDOR             0x0A
+#define BQ24295_REG_VENDOR 0x0A
 
-#define BQ24295_REVISION_MASK          GENMASK(2, 0)
-#define BQ24295_PART_NUMBER_MASK       GENMASK(7, 5)
+#define BQ24295_REVISION_MASK    GENMASK(2, 0)
+#define BQ24295_PART_NUMBER_MASK GENMASK(7, 5)
 
-#define BQ24295_PART_NUMBER            0x6
+#define BQ24295_PART_NUMBER 0x6
 
 struct bq24295_config {
 	struct i2c_dt_spec i2c;
@@ -206,14 +206,7 @@ struct bq24295_data {
 };
 
 static const uint32_t bq24295_iinlim_table[] = {
-	100000,
-	150000,
-	500000,
-	900000,
-	1000000,
-	1500000,
-	2000000,
-	3000000,
+	100000, 150000, 500000, 900000, 1000000, 1500000, 2000000, 3000000,
 };
 
 static int bq24295_reg_read(const struct device *dev, uint8_t reg, uint8_t *val)
@@ -243,8 +236,6 @@ static int bq24295_field_read(const struct device *dev, uint8_t reg, uint8_t mas
 	int ret;
 
 	ret = bq24295_reg_read(dev, reg, &tmp);
-
-	printk("bq24295_field_read: reg=0x%02x, mask=0x%02x, tmp=0x%02x\n", reg, mask, tmp);
 
 	if (ret < 0) {
 		return ret;
@@ -306,12 +297,7 @@ static int bq24295_get_online(const struct device *dev, enum charger_online *onl
 	uint8_t vbus;
 	int ret;
 
-	ret = bq24295_field_read(dev,
-				BQ24295_REG_SYSTEM_STATUS,
-				BQ24295_VBUS_STAT_MASK,
-				&vbus);
-
-	printk("bq24295_get_online: vbus=%u\n", vbus);
+	ret = bq24295_field_read(dev, BQ24295_REG_SYSTEM_STATUS, BQ24295_VBUS_STAT_MASK, &vbus);
 
 	if (ret < 0) {
 		return ret;
@@ -341,12 +327,7 @@ static int bq24295_get_status(const struct device *dev, enum charger_status *sta
 	uint8_t chrg;
 	int ret;
 
-	ret = bq24295_field_read(dev,
-				BQ24295_REG_SYSTEM_STATUS,
-				BQ24295_CHRG_STAT_MASK,
-				&chrg);
-
-	printk("bq24295_get_status: chrg=%u\n", chrg);
+	ret = bq24295_field_read(dev, BQ24295_REG_SYSTEM_STATUS, BQ24295_CHRG_STAT_MASK, &chrg);
 
 	if (ret < 0) {
 		return ret;
@@ -377,8 +358,7 @@ static int bq24295_charger_get_charge_type(const struct device *dev,
 	return 0;
 }
 
-static int bq24295_get_health(const struct device *dev,
-			      enum charger_health *health)
+static int bq24295_get_health(const struct device *dev, enum charger_health *health)
 {
 	uint8_t fault;
 	uint8_t chrg_fault;
@@ -386,23 +366,21 @@ static int bq24295_get_health(const struct device *dev,
 	int ret;
 
 	/*
-	* REG09 is a latched fault register.
-	* Reading it acknowledges previously latched faults.
-	*/
+	 * REG09 is a latched fault register.
+	 * Reading it acknowledges previously latched faults.
+	 */
 	ret = bq24295_reg_read(dev, BQ24295_REG_FAULT, &fault);
 	if (ret < 0) {
 		return ret;
 	}
 
-	printk("bq24295_get_health: fault=0x%02x\n", fault);
-
 	if (fault & BQ24295_BAT_FAULT) {
 		*health = CHARGER_HEALTH_OVERVOLTAGE;
 		return 0;
 	}
-	
+
 	ntc_fault = FIELD_GET(BQ24295_NTC_FAULT_MASK, fault);
-	
+
 	switch (ntc_fault) {
 	case BQ24295_NTC_FAULT_NORMAL:
 		break;
@@ -452,10 +430,7 @@ static int bq24295_get_constant_charge_current(const struct device *dev, uint32_
 	uint8_t ichg;
 	int ret;
 
-	ret = bq24295_field_read(dev,
-				BQ24295_REG_CHARGE_CURRENT,
-				BQ24295_ICHG_MASK,
-				&ichg);
+	ret = bq24295_field_read(dev, BQ24295_REG_CHARGE_CURRENT, BQ24295_ICHG_MASK, &ichg);
 	if (ret < 0) {
 		return ret;
 	}
@@ -470,10 +445,8 @@ static int bq24295_get_precharge_current(const struct device *dev, uint32_t *cur
 	uint8_t iprechg;
 	int ret;
 
-	ret = bq24295_field_read(dev,
-				BQ24295_REG_PRECHG_TERM_CURRENT,
-				BQ24295_IPRECHG_MASK,
-				&iprechg);
+	ret = bq24295_field_read(dev, BQ24295_REG_PRECHG_TERM_CURRENT, BQ24295_IPRECHG_MASK,
+				 &iprechg);
 	if (ret < 0) {
 		return ret;
 	}
@@ -488,10 +461,7 @@ static int bq24295_get_termination_current(const struct device *dev, uint32_t *c
 	uint8_t iterm;
 	int ret;
 
-	ret = bq24295_field_read(dev,
-				BQ24295_REG_PRECHG_TERM_CURRENT,
-				BQ24295_ITERM_MASK,
-				&iterm);
+	ret = bq24295_field_read(dev, BQ24295_REG_PRECHG_TERM_CURRENT, BQ24295_ITERM_MASK, &iterm);
 	if (ret < 0) {
 		return ret;
 	}
@@ -506,10 +476,7 @@ static int bq24295_get_constant_charge_voltage(const struct device *dev, uint32_
 	uint8_t vreg;
 	int ret;
 
-	ret = bq24295_field_read(dev,
-				BQ24295_REG_CHARGE_VOLTAGE,
-				BQ24295_VREG_MASK,
-				&vreg);
+	ret = bq24295_field_read(dev, BQ24295_REG_CHARGE_VOLTAGE, BQ24295_VREG_MASK, &vreg);
 	if (ret < 0) {
 		return ret;
 	}
@@ -524,10 +491,7 @@ static int bq24295_get_input_current_limit(const struct device *dev, uint32_t *c
 	uint8_t iinlim;
 	int ret;
 
-	ret = bq24295_field_read(dev,
-				BQ24295_REG_INPUT_SRC_CTRL,
-				BQ24295_IINLIM_MASK,
-				&iinlim);
+	ret = bq24295_field_read(dev, BQ24295_REG_INPUT_SRC_CTRL, BQ24295_IINLIM_MASK, &iinlim);
 	if (ret < 0) {
 		return ret;
 	}
@@ -539,7 +503,6 @@ static int bq24295_get_input_current_limit(const struct device *dev, uint32_t *c
 	*current_ua = bq24295_iinlim_table[iinlim];
 
 	return 0;
-
 }
 
 static int bq24295_get_vindpm(const struct device *dev, uint32_t *voltage_uv)
@@ -547,10 +510,7 @@ static int bq24295_get_vindpm(const struct device *dev, uint32_t *voltage_uv)
 	uint8_t vindpm;
 	int ret;
 
-	ret = bq24295_field_read(dev,
-				BQ24295_REG_INPUT_SRC_CTRL,
-				BQ24295_VINDPM_MASK,
-				&vindpm);
+	ret = bq24295_field_read(dev, BQ24295_REG_INPUT_SRC_CTRL, BQ24295_VINDPM_MASK, &vindpm);
 	if (ret < 0) {
 		return ret;
 	}
@@ -565,64 +525,45 @@ static int bq24295_set_constant_charge_current(const struct device *dev, uint32_
 	uint8_t ichg;
 
 	if (current_ua < BQ24295_ICHG_MIN_UA || current_ua > BQ24295_ICHG_MAX_UA) {
-		LOG_WRN("Charge current %u uA out of range, clamping",
-			current_ua);
+		LOG_WRN("Charge current %u uA out of range, clamping", current_ua);
 	}
 
 	current_ua = CLAMP(current_ua, BQ24295_ICHG_MIN_UA, BQ24295_ICHG_MAX_UA);
-	
+
 	ichg = (current_ua - BQ24295_ICHG_OFFSET_UA) / BQ24295_ICHG_STEP_UA;
 
-	return bq24295_field_write(dev,
-				BQ24295_REG_CHARGE_CURRENT,
-				BQ24295_ICHG_MASK,
-				ichg);
+	return bq24295_field_write(dev, BQ24295_REG_CHARGE_CURRENT, BQ24295_ICHG_MASK, ichg);
 }
 
-static int bq24295_set_precharge_current(const struct device *dev,
-					uint32_t current_ua)
+static int bq24295_set_precharge_current(const struct device *dev, uint32_t current_ua)
 {
 	uint8_t iprechg;
 
-	if (current_ua < BQ24295_IPRECHG_MIN_UA ||
-	    current_ua > BQ24295_IPRECHG_MAX_UA) {
-		LOG_WRN("Precharge current %u uA out of range, clamping",
-			current_ua);
+	if (current_ua < BQ24295_IPRECHG_MIN_UA || current_ua > BQ24295_IPRECHG_MAX_UA) {
+		LOG_WRN("Precharge current %u uA out of range, clamping", current_ua);
 	}
 
-	current_ua = CLAMP(current_ua,
-			    BQ24295_IPRECHG_MIN_UA,
-			    BQ24295_IPRECHG_MAX_UA);
+	current_ua = CLAMP(current_ua, BQ24295_IPRECHG_MIN_UA, BQ24295_IPRECHG_MAX_UA);
 
 	iprechg = (current_ua - BQ24295_IPRECHG_OFFSET_UA) / BQ24295_IPRECHG_STEP_UA;
 
-	return bq24295_field_write(dev,
-				BQ24295_REG_PRECHG_TERM_CURRENT,
-				BQ24295_IPRECHG_MASK,
-				iprechg);
+	return bq24295_field_write(dev, BQ24295_REG_PRECHG_TERM_CURRENT, BQ24295_IPRECHG_MASK,
+				   iprechg);
 }
 
-static int bq24295_set_termination_current(const struct device *dev,
-					uint32_t current_ua)
+static int bq24295_set_termination_current(const struct device *dev, uint32_t current_ua)
 {
 	uint8_t iterm;
 
-	if (current_ua < BQ24295_ITERM_MIN_UA ||
-	    current_ua > BQ24295_ITERM_MAX_UA) {
-		LOG_WRN("Termination current %u uA out of range, clamping",
-			current_ua);
+	if (current_ua < BQ24295_ITERM_MIN_UA || current_ua > BQ24295_ITERM_MAX_UA) {
+		LOG_WRN("Termination current %u uA out of range, clamping", current_ua);
 	}
 
-	current_ua = CLAMP(current_ua,
-			    BQ24295_ITERM_MIN_UA,
-			    BQ24295_ITERM_MAX_UA);
+	current_ua = CLAMP(current_ua, BQ24295_ITERM_MIN_UA, BQ24295_ITERM_MAX_UA);
 
 	iterm = (current_ua - BQ24295_ITERM_OFFSET_UA) / BQ24295_ITERM_STEP_UA;
 
-	return bq24295_field_write(dev,
-				BQ24295_REG_PRECHG_TERM_CURRENT,
-				BQ24295_ITERM_MASK,
-				iterm);
+	return bq24295_field_write(dev, BQ24295_REG_PRECHG_TERM_CURRENT, BQ24295_ITERM_MASK, iterm);
 }
 
 static int bq24295_set_constant_charge_voltage(const struct device *dev, uint32_t voltage_uv)
@@ -630,18 +571,14 @@ static int bq24295_set_constant_charge_voltage(const struct device *dev, uint32_
 	uint8_t vreg;
 
 	if (voltage_uv < BQ24295_VREG_MIN_UV || voltage_uv > BQ24295_VREG_MAX_UV) {
-		LOG_WRN("Charge voltage %u uV out of range, clamping",
-			voltage_uv);
+		LOG_WRN("Charge voltage %u uV out of range, clamping", voltage_uv);
 	}
 
 	voltage_uv = CLAMP(voltage_uv, BQ24295_VREG_MIN_UV, BQ24295_VREG_MAX_UV);
 
 	vreg = (voltage_uv - BQ24295_VREG_OFFSET_UV) / BQ24295_VREG_STEP_UV;
 
-	return bq24295_field_write(dev,
-				BQ24295_REG_CHARGE_VOLTAGE,
-				BQ24295_VREG_MASK,
-				vreg);
+	return bq24295_field_write(dev, BQ24295_REG_CHARGE_VOLTAGE, BQ24295_VREG_MASK, vreg);
 }
 
 static int bq24295_set_input_current_limit(const struct device *dev, uint32_t current_ua)
@@ -649,13 +586,12 @@ static int bq24295_set_input_current_limit(const struct device *dev, uint32_t cu
 	uint8_t i;
 
 	if (current_ua < bq24295_iinlim_table[0] ||
-	current_ua > bq24295_iinlim_table[ARRAY_SIZE(bq24295_iinlim_table) - 1]) {
+	    current_ua > bq24295_iinlim_table[ARRAY_SIZE(bq24295_iinlim_table) - 1]) {
 		LOG_WRN("Input current %u uA out of range, clamping", current_ua);
 	}
 
-	current_ua = CLAMP(current_ua,
-			bq24295_iinlim_table[0],
-			bq24295_iinlim_table[ARRAY_SIZE(bq24295_iinlim_table) - 1]);
+	current_ua = CLAMP(current_ua, bq24295_iinlim_table[0],
+			   bq24295_iinlim_table[ARRAY_SIZE(bq24295_iinlim_table) - 1]);
 
 	for (i = 0; i < ARRAY_SIZE(bq24295_iinlim_table); i++) {
 		if (current_ua <= bq24295_iinlim_table[i]) {
@@ -663,32 +599,24 @@ static int bq24295_set_input_current_limit(const struct device *dev, uint32_t cu
 		}
 	}
 
-	return bq24295_field_write(dev,
-				BQ24295_REG_INPUT_SRC_CTRL,
-				BQ24295_IINLIM_MASK,
-				i);
+	return bq24295_field_write(dev, BQ24295_REG_INPUT_SRC_CTRL, BQ24295_IINLIM_MASK, i);
 }
 
 static int bq24295_set_vindpm(const struct device *dev, uint32_t voltage_uv)
 {
 	uint8_t vindpm;
 
-	if (voltage_uv < BQ24295_VINDPM_MIN_UV ||
-		voltage_uv > BQ24295_VINDPM_MAX_UV) {
-		LOG_WRN("Input regulation voltage %u uV out of range, clamping",
-		voltage_uv);
+	if (voltage_uv < BQ24295_VINDPM_MIN_UV || voltage_uv > BQ24295_VINDPM_MAX_UV) {
+		LOG_WRN("Input regulation voltage %u uV out of range, clamping", voltage_uv);
 	}
 
 	voltage_uv = CLAMP(voltage_uv, BQ24295_VINDPM_MIN_UV, BQ24295_VINDPM_MAX_UV);
 
 	vindpm = (voltage_uv - BQ24295_VINDPM_OFFSET_UV) / BQ24295_VINDPM_STEP_UV;
 
-	return bq24295_field_write(dev,
-		BQ24295_REG_INPUT_SRC_CTRL,
-		BQ24295_VINDPM_MASK,
-		vindpm);
+	return bq24295_field_write(dev, BQ24295_REG_INPUT_SRC_CTRL, BQ24295_VINDPM_MASK, vindpm);
 }
-	
+
 static int bq24295_gpio_init(const struct device *dev)
 {
 	const struct bq24295_config *config = dev->config;
@@ -701,8 +629,7 @@ static int bq24295_gpio_init(const struct device *dev)
 			return -ENODEV;
 		}
 
-		ret = gpio_pin_configure_dt(&config->ce_gpio,
-					    GPIO_OUTPUT_INACTIVE);
+		ret = gpio_pin_configure_dt(&config->ce_gpio, GPIO_OUTPUT_INACTIVE);
 
 		if (ret < 0) {
 			LOG_ERR("Failed to configure CE GPIO (%d)", ret);
@@ -715,7 +642,7 @@ static int bq24295_gpio_init(const struct device *dev)
 	return 0;
 }
 
-static int bq24295_get_property(const struct device *dev, const charger_prop_t prop, 
+static int bq24295_get_property(const struct device *dev, const charger_prop_t prop,
 				union charger_propval *val)
 {
 	uint8_t reg;
@@ -739,7 +666,8 @@ static int bq24295_get_property(const struct device *dev, const charger_prop_t p
 	case CHARGER_PROP_CONSTANT_CHARGE_VOLTAGE_UV:
 		return bq24295_get_constant_charge_voltage(dev, &val->const_charge_voltage_uv);
 	case CHARGER_PROP_INPUT_REGULATION_CURRENT_UA:
-		return bq24295_get_input_current_limit(dev, &val->input_current_regulation_current_ua);
+		return bq24295_get_input_current_limit(dev,
+						       &val->input_current_regulation_current_ua);
 	case CHARGER_PROP_INPUT_REGULATION_VOLTAGE_UV:
 		return bq24295_get_vindpm(dev, &val->input_voltage_regulation_voltage_uv);
 	default:
@@ -756,7 +684,8 @@ static int bq24295_set_property(const struct device *dev, const charger_prop_t p
 	case CHARGER_PROP_CONSTANT_CHARGE_VOLTAGE_UV:
 		return bq24295_set_constant_charge_voltage(dev, val->const_charge_voltage_uv);
 	case CHARGER_PROP_INPUT_REGULATION_CURRENT_UA:
-		return bq24295_set_input_current_limit(dev, val->input_current_regulation_current_ua);
+		return bq24295_set_input_current_limit(dev,
+						       val->input_current_regulation_current_ua);
 	case CHARGER_PROP_INPUT_REGULATION_VOLTAGE_UV:
 		return bq24295_set_vindpm(dev, val->input_voltage_regulation_voltage_uv);
 	case CHARGER_PROP_PRECHARGE_CURRENT_UA:
@@ -774,10 +703,8 @@ static int bq24295_charge_enable(const struct device *dev, bool enable)
 
 	value = enable ? BQ24295_CHG_ENABLE : BQ24295_CHG_DISABLE;
 
-	return bq24295_field_write(dev,
-				BQ24295_REG_POWER_ON_CONFIG,
-				BQ24295_CHG_CONFIG_MASK,
-				value);
+	return bq24295_field_write(dev, BQ24295_REG_POWER_ON_CONFIG, BQ24295_CHG_CONFIG_MASK,
+				   value);
 }
 
 static int bq24295_init(const struct device *dev)
@@ -801,8 +728,6 @@ static int bq24295_init(const struct device *dev)
 	if (ret < 0) {
 		LOG_ERR("Failed to initialize GPIOs (%d)", ret);
 		return ret;
-	} else {
-		LOG_INF("GPIOs initialized successfully");
 	}
 
 	LOG_INF("BQ24295 initialized");
@@ -816,20 +741,14 @@ static DEVICE_API(charger, bq24295_api) = {
 	.charge_enable = bq24295_charge_enable,
 };
 
-#define BQ24295_INIT(inst)                                     \
-    static struct bq24295_data data_##inst;                      \
-    static const struct bq24295_config config_##inst = {         \
-        .i2c = I2C_DT_SPEC_INST_GET(inst),                       \
-        .ce_gpio = GPIO_DT_SPEC_INST_GET_OR(inst, ce_gpios, {}), \
-    };                                                           \
-                                                                 \
-    DEVICE_DT_INST_DEFINE(inst,                                  \
-                          bq24295_init,                           \
-                          NULL,                                   \
-                          &data_##inst,                           \
-                          &config_##inst,                         \
-                          POST_KERNEL,                            \
-                          CONFIG_CHARGER_INIT_PRIORITY,      \
-                          &bq24295_api);
+#define BQ24295_INIT(inst)                                                                         \
+	static struct bq24295_data data_##inst;                                                    \
+	static const struct bq24295_config config_##inst = {                                       \
+		.i2c = I2C_DT_SPEC_INST_GET(inst),                                                 \
+		.ce_gpio = GPIO_DT_SPEC_INST_GET_OR(inst, ce_gpios, {}),                           \
+	};                                                                                         \
+                                                                                                   \
+	DEVICE_DT_INST_DEFINE(inst, bq24295_init, NULL, &data_##inst, &config_##inst, POST_KERNEL, \
+			      CONFIG_CHARGER_INIT_PRIORITY, &bq24295_api);
 
 DT_INST_FOREACH_STATUS_OKAY(BQ24295_INIT)

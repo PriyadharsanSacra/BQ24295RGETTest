@@ -1,0 +1,3 @@
+clang-format -i drivers/charger/charger_bq24295.c
+
+./scripts/checkpatch.pl --file drivers/charger/charger_bq24295.c
