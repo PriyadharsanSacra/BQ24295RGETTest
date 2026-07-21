@@ -230,7 +230,7 @@ int main(void)
 			printk("charger_set_prop() failed (%d)\n", ret);
 		}
 
-		uint32_t new_input_current = 900000; /* 3000 mA */
+		uint32_t new_input_current = 500000; /* 500 mA */
 		val.input_current_regulation_current_ua = new_input_current;
 
 		ret = charger_set_prop(charger,
@@ -269,7 +269,7 @@ int main(void)
 			printk("charger_charge_enable() failed (%d)\n", ret);
 		}
 
-		uint32_t precharge_current = 512000; /* 512 mA */
+		uint32_t precharge_current = 256000; /* 256 mA */
 		val.precharge_current_ua = precharge_current;
 		ret = charger_set_prop(charger, CHARGER_PROP_PRECHARGE_CURRENT_UA, &val);
 		if (ret == 0) {
@@ -280,7 +280,7 @@ int main(void)
 			printk("charger_set_prop() failed (%d)\n", ret);
 		}
 
-		uint32_t termination_current = 512000; /* 512 mA */
+		uint32_t termination_current = 256000; /* 256 mA */
 		val.charge_term_current_ua = termination_current;
 		ret = charger_set_prop(charger, CHARGER_PROP_CHARGE_TERM_CURRENT_UA, &val);
 		if (ret == 0) {

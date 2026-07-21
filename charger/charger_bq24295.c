@@ -198,6 +198,9 @@ LOG_MODULE_REGISTER(ti_bq24295, CONFIG_CHARGER_LOG_LEVEL);
 struct bq24295_config {
 	struct i2c_dt_spec i2c;
 	struct gpio_dt_spec ce_gpio;
+	unsigned int ichg_ua;
+	unsigned int vreg_uv;
+	unsigned int watchdog_timeout_ms;
 };
 
 struct bq24295_data {
@@ -581,6 +584,26 @@ static int bq24295_set_constant_charge_voltage(const struct device *dev, uint32_
 	return bq24295_field_write(dev, BQ24295_REG_CHARGE_VOLTAGE, BQ24295_VREG_MASK, vreg);
 }
 
+static int bq24295_set_watchdog_timeout(const struct device *dev, uint32_t timeout_ms)
+{
+	uint8_t wdt;
+
+	if (timeout_ms == 0) {
+		wdt = BQ24295_WATCHDOG_SEL_DISABLE;
+	} else if (timeout_ms <= 40000) {
+		wdt = BQ24295_WATCHDOG_SEL_40S;
+	} else if (timeout_ms <= 80000) {
+		wdt = BQ24295_WATCHDOG_SEL_80S;
+	} else if (timeout_ms <= 160000) {
+		wdt = BQ24295_WATCHDOG_SEL_160S;
+	} else {
+		LOG_WRN("Watchdog timeout %u ms out of range, clamping", timeout_ms);
+		wdt = BQ24295_WATCHDOG_SEL_160S;
+	}
+
+	return bq24295_field_write(dev, BQ24295_REG_CHARGE_TERM_TIMER, BQ24295_WATCHDOG_MASK, wdt);
+}
+
 static int bq24295_set_input_current_limit(const struct device *dev, uint32_t current_ua)
 {
 	uint8_t i;
@@ -707,6 +730,30 @@ static int bq24295_charge_enable(const struct device *dev, bool enable)
 				   value);
 }
 
+static int bq24295_set_config(const struct device *dev)
+{
+	const struct bq24295_config *config = dev->config;
+
+	int ret = 0;
+
+	ret = bq24295_set_constant_charge_current(dev, config->ichg_ua);
+	if (ret < 0) {
+		return ret;
+	}
+
+	ret = bq24295_set_constant_charge_voltage(dev, config->vreg_uv);
+	if (ret < 0) {
+		return ret;
+	}
+
+	ret = bq24295_set_watchdog_timeout(dev, config->watchdog_timeout_ms);
+	if (ret < 0) {
+		return ret;
+	}
+
+	return 0;
+}
+
 static int bq24295_init(const struct device *dev)
 {
 	const struct bq24295_config *config = dev->config;
@@ -730,6 +777,12 @@ static int bq24295_init(const struct device *dev)
 		return ret;
 	}
 
+	ret = bq24295_set_config(dev);
+	if (ret < 0) {
+		LOG_ERR("Failed to set configuration (%d)", ret);
+		return ret;
+	}
+
 	LOG_INF("BQ24295 initialized");
 
 	return 0;
@@ -742,11 +795,15 @@ static DEVICE_API(charger, bq24295_api) = {
 };
 
 #define BQ24295_INIT(inst)                                                                         \
-	static struct bq24295_data data_##inst;                                                    \
 	static const struct bq24295_config config_##inst = {                                       \
 		.i2c = I2C_DT_SPEC_INST_GET(inst),                                                 \
 		.ce_gpio = GPIO_DT_SPEC_INST_GET_OR(inst, ce_gpios, {}),                           \
+		.ichg_ua = DT_INST_PROP(inst, constant_charge_current_max_microamp),               \
+		.vreg_uv = DT_INST_PROP(inst, constant_charge_voltage_max_microvolt),              \
+		.watchdog_timeout_ms = DT_INST_PROP(inst, watchdog_timeout_ms),                    \
 	};                                                                                         \
+                                                                                                   \
+	static struct bq24295_data data_##inst;                                                    \
                                                                                                    \
 	DEVICE_DT_INST_DEFINE(inst, bq24295_init, NULL, &data_##inst, &config_##inst, POST_KERNEL, \
 			      CONFIG_CHARGER_INIT_PRIORITY, &bq24295_api);
