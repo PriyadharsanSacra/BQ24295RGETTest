@@ -219,13 +219,6 @@ static int bq24295_reg_read(const struct device *dev, uint8_t reg, uint8_t *val)
 	return i2c_reg_read_byte_dt(&config->i2c, reg, val);
 }
 
-static int bq24295_reg_write(const struct device *dev, uint8_t reg, uint8_t val)
-{
-	const struct bq24295_config *config = dev->config;
-
-	return i2c_reg_write_byte_dt(&config->i2c, reg, val);
-}
-
 static int bq24295_reg_update(const struct device *dev, uint8_t reg, uint8_t mask, uint8_t val)
 {
 	const struct bq24295_config *config = dev->config;
@@ -252,21 +245,6 @@ static int bq24295_field_read(const struct device *dev, uint8_t reg, uint8_t mas
 static int bq24295_field_write(const struct device *dev, uint8_t reg, uint8_t mask, uint8_t value)
 {
 	return bq24295_reg_update(dev, reg, mask, FIELD_PREP(mask, value));
-}
-
-static int bq24295_test_bit(const struct device *dev, uint8_t reg, uint8_t bit, bool *set)
-{
-	uint8_t value;
-	int ret;
-
-	ret = bq24295_reg_read(dev, reg, &value);
-	if (ret < 0) {
-		return ret;
-	}
-
-	*set = (value & bit) != 0U;
-
-	return 0;
 }
 
 static int bq24295_identify(const struct device *dev)
@@ -668,9 +646,6 @@ static int bq24295_gpio_init(const struct device *dev)
 static int bq24295_get_property(const struct device *dev, const charger_prop_t prop,
 				union charger_propval *val)
 {
-	uint8_t reg;
-	int ret;
-
 	switch (prop) {
 	case CHARGER_PROP_ONLINE:
 		return bq24295_get_online(dev, &val->online);
