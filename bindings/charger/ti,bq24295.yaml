@@ -56,5 +56,5 @@ examples:
 
       watchdog-timeout-ms = <40000>;
 
-      ce-gpios = <&gpio0 3 GPIO_ACTIVE_LOW>;
+      ce-gpios = <&test_gpio 0 0>;
     };

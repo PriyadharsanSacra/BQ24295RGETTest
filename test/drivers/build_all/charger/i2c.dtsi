@@ -93,17 +93,16 @@ npm10xx@8 {
 	};
 };
 
-bq24295@6b {
+bq24295@9 {
         compatible = "ti,bq24295";
-        reg = <0x6b>;
+        reg = <0x9>;
 
         status = "okay";
 
-        /* Required by binding */
         constant-charge-current-max-microamp = <512000>;
         constant-charge-voltage-max-microvolt = <4208000>;
 
         watchdog-timeout-ms = <0>;
 
-        ce-gpios = <&gpio0 3 GPIO_ACTIVE_LOW>;
+        ce-gpios = <&test_gpio 0 0>;
 };
