@@ -226,6 +226,21 @@ static int bq24295_reg_update(const struct device *dev, uint8_t reg, uint8_t mas
 	return i2c_reg_update_byte_dt(&config->i2c, reg, mask, val);
 }
 
+static int bq24295_test_bit(const struct device *dev, uint8_t reg, uint8_t bit, bool *set)
+{
+	uint8_t value;
+	int ret;
+
+	ret = bq24295_reg_read(dev, reg, &value);
+	if (ret < 0) {
+		return ret;
+	}
+
+	*set = (value & bit) != 0U;
+
+	return 0;
+}
+
 static int bq24295_field_read(const struct device *dev, uint8_t reg, uint8_t mask, uint8_t *value)
 {
 	uint8_t tmp;
@@ -275,30 +290,25 @@ static int bq24295_identify(const struct device *dev)
 
 static int bq24295_get_online(const struct device *dev, enum charger_online *online)
 {
-	uint8_t vbus;
+	bool pg_stat;
+	bool batfet_disable; 
 	int ret;
 
-	ret = bq24295_field_read(dev, BQ24295_REG_SYSTEM_STATUS, BQ24295_VBUS_STAT_MASK, &vbus);
-
+	ret = bq24295_test_bit(dev, BQ24295_REG_SYSTEM_STATUS, BQ24295_PG_STAT, &pg_stat);
 	if (ret < 0) {
 		return ret;
 	}
 
-	switch (vbus) {
-	case BQ24295_VBUS_STAT_UNKNOWN:
-		*online = CHARGER_ONLINE_OFFLINE;
-		break;
-	case BQ24295_VBUS_STAT_USB_HOST:
-	case BQ24295_VBUS_STAT_ADAPTER:
-		*online = CHARGER_ONLINE_FIXED;
-		break;
-	case BQ24295_VBUS_STAT_OTG:
-		*online = CHARGER_ONLINE_OFFLINE;
-		break;
-
-	default:
-		return -EIO;
+	ret = bq24295_test_bit(dev, BQ24295_REG_MISC_OPERATION, BQ24295_BATFET_DISABLE, &batfet_disable);
+	if (ret < 0) {
+		return ret;
 	}
+
+	if (pg_stat && !batfet_disable) {
+		*online = CHARGER_ONLINE_FIXED;
+	} else {
+		*online = CHARGER_ONLINE_OFFLINE;
+	}	
 
 	return 0;
 }
