@@ -1,6 +1,22 @@
 #include <zephyr/dt-bindings/i2c/i2c.h>
 #include <zephyr/dt-bindings/gpio/gpio.h>
 
+/ {
+	bq24295_test {
+		compatible = "gpio-keys";
+
+		bq24295_int: int {
+			gpios = <&gpio0 4 GPIO_ACTIVE_LOW>;
+			label = "BQ24295 INT";
+		};
+
+		bq24295_stat: stat {
+			gpios = <&gpio0 21 GPIO_ACTIVE_LOW>;
+			label = "BQ24295 STAT";
+		};
+	};
+};
+
 &pinctrl {
     i2c0_default: i2c0_default {
         group1 {
@@ -31,7 +47,7 @@
 
         watchdog-timeout-ms = <0>;
 
-        ce-gpios = <&gpio0 3 GPIO_ACTIVE_LOW>;
+        // ce-gpios = <&gpio0 3 GPIO_ACTIVE_LOW>;
     };
 };
 
