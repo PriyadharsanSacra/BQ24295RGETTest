@@ -198,9 +198,9 @@ LOG_MODULE_REGISTER(ti_bq24295, CONFIG_CHARGER_LOG_LEVEL);
 struct bq24295_config {
 	struct i2c_dt_spec i2c;
 	struct gpio_dt_spec ce_gpio;
-	unsigned int ichg_ua;
-	unsigned int vreg_uv;
-	unsigned int watchdog_timeout_ms;
+	uint32_t ichg_ua;
+	uint32_t vreg_uv;
+	uint32_t watchdog_timeout_ms;
 };
 
 struct bq24295_data {
@@ -247,7 +247,6 @@ static int bq24295_field_read(const struct device *dev, uint8_t reg, uint8_t mas
 	int ret;
 
 	ret = bq24295_reg_read(dev, reg, &tmp);
-
 	if (ret < 0) {
 		return ret;
 	}
@@ -269,7 +268,6 @@ static int bq24295_identify(const struct device *dev)
 	int ret;
 
 	ret = bq24295_reg_read(dev, BQ24295_REG_VENDOR, &reg);
-
 	if (ret < 0) {
 		LOG_ERR("Failed to read vendor register (%d)", ret);
 		return ret;
@@ -290,8 +288,7 @@ static int bq24295_identify(const struct device *dev)
 
 static int bq24295_get_online(const struct device *dev, enum charger_online *online)
 {
-	bool pg_stat;
-	bool batfet_disable; 
+	bool pg_stat, batfet_disable;
 	int ret;
 
 	ret = bq24295_test_bit(dev, BQ24295_REG_SYSTEM_STATUS, BQ24295_PG_STAT, &pg_stat);
@@ -299,7 +296,8 @@ static int bq24295_get_online(const struct device *dev, enum charger_online *onl
 		return ret;
 	}
 
-	ret = bq24295_test_bit(dev, BQ24295_REG_MISC_OPERATION, BQ24295_BATFET_DISABLE, &batfet_disable);
+	ret = bq24295_test_bit(dev, BQ24295_REG_MISC_OPERATION, BQ24295_BATFET_DISABLE,
+			       &batfet_disable);
 	if (ret < 0) {
 		return ret;
 	}
@@ -308,7 +306,7 @@ static int bq24295_get_online(const struct device *dev, enum charger_online *onl
 		*online = CHARGER_ONLINE_FIXED;
 	} else {
 		*online = CHARGER_ONLINE_OFFLINE;
-	}	
+	}
 
 	return 0;
 }
@@ -319,7 +317,6 @@ static int bq24295_get_status(const struct device *dev, enum charger_status *sta
 	int ret;
 
 	ret = bq24295_field_read(dev, BQ24295_REG_SYSTEM_STATUS, BQ24295_CHRG_STAT_MASK, &chrg);
-
 	if (ret < 0) {
 		return ret;
 	}
@@ -351,9 +348,7 @@ static int bq24295_charger_get_charge_type(const struct device *dev,
 
 static int bq24295_get_health(const struct device *dev, enum charger_health *health)
 {
-	uint8_t fault;
-	uint8_t chrg_fault;
-	uint8_t ntc_fault;
+	uint8_t fault, ntc_fault, chrg_fault;
 	int ret;
 
 	/*
@@ -365,7 +360,7 @@ static int bq24295_get_health(const struct device *dev, enum charger_health *hea
 		return ret;
 	}
 
-	if (fault & BQ24295_BAT_FAULT) {
+	if ((fault & BQ24295_BAT_FAULT) != 0U) {
 		*health = CHARGER_HEALTH_OVERVOLTAGE;
 		return 0;
 	}
@@ -515,7 +510,7 @@ static int bq24295_set_constant_charge_current(const struct device *dev, uint32_
 {
 	uint8_t ichg;
 
-	if (current_ua < BQ24295_ICHG_MIN_UA || current_ua > BQ24295_ICHG_MAX_UA) {
+	if (!IN_RANGE(current_ua, BQ24295_ICHG_MIN_UA, BQ24295_ICHG_MAX_UA)) {
 		LOG_WRN("Charge current %u uA out of range, clamping", current_ua);
 	}
 
@@ -530,7 +525,7 @@ static int bq24295_set_precharge_current(const struct device *dev, uint32_t curr
 {
 	uint8_t iprechg;
 
-	if (current_ua < BQ24295_IPRECHG_MIN_UA || current_ua > BQ24295_IPRECHG_MAX_UA) {
+	if (!IN_RANGE(current_ua, BQ24295_IPRECHG_MIN_UA, BQ24295_IPRECHG_MAX_UA)) {
 		LOG_WRN("Precharge current %u uA out of range, clamping", current_ua);
 	}
 
@@ -546,7 +541,7 @@ static int bq24295_set_termination_current(const struct device *dev, uint32_t cu
 {
 	uint8_t iterm;
 
-	if (current_ua < BQ24295_ITERM_MIN_UA || current_ua > BQ24295_ITERM_MAX_UA) {
+	if (!IN_RANGE(current_ua, BQ24295_ITERM_MIN_UA, BQ24295_ITERM_MAX_UA)) {
 		LOG_WRN("Termination current %u uA out of range, clamping", current_ua);
 	}
 
@@ -561,7 +556,7 @@ static int bq24295_set_constant_charge_voltage(const struct device *dev, uint32_
 {
 	uint8_t vreg;
 
-	if (voltage_uv < BQ24295_VREG_MIN_UV || voltage_uv > BQ24295_VREG_MAX_UV) {
+	if (!IN_RANGE(voltage_uv, BQ24295_VREG_MIN_UV, BQ24295_VREG_MAX_UV)) {
 		LOG_WRN("Charge voltage %u uV out of range, clamping", voltage_uv);
 	}
 
@@ -596,8 +591,8 @@ static int bq24295_set_input_current_limit(const struct device *dev, uint32_t cu
 {
 	uint8_t i;
 
-	if (current_ua < bq24295_iinlim_table[0] ||
-	    current_ua > bq24295_iinlim_table[ARRAY_SIZE(bq24295_iinlim_table) - 1]) {
+	if (!IN_RANGE(current_ua, bq24295_iinlim_table[0], 
+		bq24295_iinlim_table[ARRAY_SIZE(bq24295_iinlim_table) - 1])) {
 		LOG_WRN("Input current %u uA out of range, clamping", current_ua);
 	}
 
@@ -617,7 +612,7 @@ static int bq24295_set_vindpm(const struct device *dev, uint32_t voltage_uv)
 {
 	uint8_t vindpm;
 
-	if (voltage_uv < BQ24295_VINDPM_MIN_UV || voltage_uv > BQ24295_VINDPM_MAX_UV) {
+	if (!IN_RANGE(voltage_uv, BQ24295_VINDPM_MIN_UV, BQ24295_VINDPM_MAX_UV)) {
 		LOG_WRN("Input regulation voltage %u uV out of range, clamping", voltage_uv);
 	}
 
@@ -707,7 +702,17 @@ static int bq24295_set_property(const struct device *dev, const charger_prop_t p
 
 static int bq24295_charge_enable(const struct device *dev, bool enable)
 {
+	const struct bq24295_config *config = dev->config;
 	uint8_t value;
+	int ret;
+
+	if (config->ce_gpio.port != NULL) {
+		/* CE is active low: 0 = enabled, 1 = disabled */
+		ret = gpio_pin_set_dt(&config->ce_gpio, !enable);
+		if (ret < 0) {
+			return ret;
+		}
+	}
 
 	value = enable ? BQ24295_CHG_ENABLE : BQ24295_CHG_DISABLE;
 
