@@ -4,8 +4,6 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#define DT_DRV_COMPAT ti_bq24295
-
 #include <errno.h>
 
 #include <zephyr/device.h>
@@ -201,11 +199,7 @@ struct bq24295_config {
 	uint32_t ichg_ua;
 	uint32_t vreg_uv;
 	uint32_t watchdog_timeout_ms;
-};
-
-struct bq24295_data {
 	uint8_t part_no;
-	uint8_t revision;
 };
 
 static const uint32_t bq24295_iinlim_table[] = {
@@ -263,8 +257,8 @@ static int bq24295_field_write(const struct device *dev, uint8_t reg, uint8_t ma
 
 static int bq24295_identify(const struct device *dev)
 {
-	struct bq24295_data *data = dev->data;
-	uint8_t reg;
+	const struct bq24295_config *config = dev->config;
+	uint8_t reg, part_no;
 	int ret;
 
 	ret = bq24295_reg_read(dev, BQ24295_REG_VENDOR, &reg);
@@ -273,15 +267,14 @@ static int bq24295_identify(const struct device *dev)
 		return ret;
 	}
 
-	data->part_no = FIELD_GET(BQ24295_PART_NUMBER_MASK, reg);
-	data->revision = FIELD_GET(BQ24295_REVISION_MASK, reg);
+	part_no = FIELD_GET(BQ24295_PART_NUMBER_MASK, reg);
 
-	if (data->part_no != BQ24295_PART_NUMBER) {
-		LOG_ERR("Unexpected part number: 0x%x", data->part_no);
+	if (part_no != config->part_no) {
+		LOG_ERR("Unexpected part number: 0x%x", part_no);
 		return -ENODEV;
 	}
 
-	LOG_INF("Detected BQ24295 (PN=0x%x, Rev=%u)", data->part_no, data->revision);
+	LOG_INF("Detected BQ24295 (PN=0x%x)", part_no);
 
 	return 0;
 }
@@ -707,8 +700,7 @@ static int bq24295_charge_enable(const struct device *dev, bool enable)
 	int ret;
 
 	if (config->ce_gpio.port != NULL) {
-		/* CE is active low: 0 = enabled, 1 = disabled */
-		ret = gpio_pin_set_dt(&config->ce_gpio, !enable);
+		ret = gpio_pin_set_dt(&config->ce_gpio, enable);
 		if (ret < 0) {
 			return ret;
 		}
@@ -784,18 +776,32 @@ static DEVICE_API(charger, bq24295_api) = {
 	.charge_enable = bq24295_charge_enable,
 };
 
-#define BQ24295_INIT(inst)                                                                         \
-	static const struct bq24295_config config_##inst = {                                       \
-		.i2c = I2C_DT_SPEC_INST_GET(inst),                                                 \
-		.ce_gpio = GPIO_DT_SPEC_INST_GET_OR(inst, ce_gpios, {}),                           \
-		.ichg_ua = DT_INST_PROP(inst, constant_charge_current_max_microamp),               \
-		.vreg_uv = DT_INST_PROP(inst, constant_charge_voltage_max_microvolt),              \
-		.watchdog_timeout_ms = DT_INST_PROP(inst, watchdog_timeout_ms),                    \
-	};                                                                                         \
-                                                                                                   \
-	static struct bq24295_data data_##inst;                                                    \
-                                                                                                   \
-	DEVICE_DT_INST_DEFINE(inst, bq24295_init, NULL, &data_##inst, &config_##inst, POST_KERNEL, \
-			      CONFIG_CHARGER_INIT_PRIORITY, &bq24295_api);
+#define CHARGER_BQ24295_CONFIG(inst, name, id)                             \
+	static const struct bq24295_config name##_config_##inst = {        \
+		.i2c = I2C_DT_SPEC_INST_GET(inst),                         \
+		.ce_gpio = GPIO_DT_SPEC_INST_GET_OR(inst, ce_gpios, {}),   \
+		.ichg_ua = DT_INST_PROP(inst, constant_charge_current_max_microamp), \
+		.vreg_uv = DT_INST_PROP(inst, constant_charge_voltage_max_microvolt), \
+		.watchdog_timeout_ms = DT_INST_PROP(inst, watchdog_timeout_ms), \
+		.part_no = id,                                              \
+	}
 
-DT_INST_FOREACH_STATUS_OKAY(BQ24295_INIT)
+#define CHARGER_BQ24295_INIT(inst, name)                                   \
+	DEVICE_DT_INST_DEFINE(inst, bq24295_init, NULL, NULL,              \
+			      &name##_config_##inst, POST_KERNEL,         \
+			      CONFIG_CHARGER_INIT_PRIORITY,               \
+			      &bq24295_api)
+
+#define CHARGER_BQ24295_DEFINE(inst, name, id)                             \
+	CHARGER_BQ24295_CONFIG(inst, name, id);                           \
+	CHARGER_BQ24295_INIT(inst, name);
+
+#define DT_DRV_COMPAT ti_bq24295
+
+#if DT_HAS_COMPAT_STATUS_OKAY(DT_DRV_COMPAT)
+DT_INST_FOREACH_STATUS_OKAY_VARGS(CHARGER_BQ24295_DEFINE,
+				  bq24295,
+				  BQ24295_PART_NUMBER)
+#endif
+
+#undef DT_DRV_COMPAT
