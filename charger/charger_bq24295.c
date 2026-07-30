@@ -584,8 +584,8 @@ static int bq24295_set_input_current_limit(const struct device *dev, uint32_t cu
 {
 	uint8_t i;
 
-	if (!IN_RANGE(current_ua, bq24295_iinlim_table[0], 
-		bq24295_iinlim_table[ARRAY_SIZE(bq24295_iinlim_table) - 1])) {
+	if (!IN_RANGE(current_ua, bq24295_iinlim_table[0],
+		      bq24295_iinlim_table[ARRAY_SIZE(bq24295_iinlim_table) - 1])) {
 		LOG_WRN("Input current %u uA out of range, clamping", current_ua);
 	}
 
@@ -776,32 +776,28 @@ static DEVICE_API(charger, bq24295_api) = {
 	.charge_enable = bq24295_charge_enable,
 };
 
-#define CHARGER_BQ24295_CONFIG(inst, name, id)                             \
-	static const struct bq24295_config name##_config_##inst = {        \
-		.i2c = I2C_DT_SPEC_INST_GET(inst),                         \
-		.ce_gpio = GPIO_DT_SPEC_INST_GET_OR(inst, ce_gpios, {}),   \
-		.ichg_ua = DT_INST_PROP(inst, constant_charge_current_max_microamp), \
-		.vreg_uv = DT_INST_PROP(inst, constant_charge_voltage_max_microvolt), \
-		.watchdog_timeout_ms = DT_INST_PROP(inst, watchdog_timeout_ms), \
-		.part_no = id,                                              \
+#define CHARGER_BQ24295_CONFIG(inst, name, id)                                                     \
+	static const struct bq24295_config name##_config_##inst = {                                \
+		.i2c = I2C_DT_SPEC_INST_GET(inst),                                                 \
+		.ce_gpio = GPIO_DT_SPEC_INST_GET_OR(inst, ce_gpios, {}),                           \
+		.ichg_ua = DT_INST_PROP(inst, constant_charge_current_max_microamp),               \
+		.vreg_uv = DT_INST_PROP(inst, constant_charge_voltage_max_microvolt),              \
+		.watchdog_timeout_ms = DT_INST_PROP(inst, watchdog_timeout_ms),                    \
+		.part_no = id,                                                                     \
 	}
 
-#define CHARGER_BQ24295_INIT(inst, name)                                   \
-	DEVICE_DT_INST_DEFINE(inst, bq24295_init, NULL, NULL,              \
-			      &name##_config_##inst, POST_KERNEL,         \
-			      CONFIG_CHARGER_INIT_PRIORITY,               \
-			      &bq24295_api)
+#define CHARGER_BQ24295_INIT(inst, name)                                                           \
+	DEVICE_DT_INST_DEFINE(inst, bq24295_init, NULL, NULL, &name##_config_##inst, POST_KERNEL,  \
+			      CONFIG_CHARGER_INIT_PRIORITY, &bq24295_api)
 
-#define CHARGER_BQ24295_DEFINE(inst, name, id)                             \
-	CHARGER_BQ24295_CONFIG(inst, name, id);                           \
+#define CHARGER_BQ24295_DEFINE(inst, name, id)                                                     \
+	CHARGER_BQ24295_CONFIG(inst, name, id);                                                    \
 	CHARGER_BQ24295_INIT(inst, name);
 
 #define DT_DRV_COMPAT ti_bq24295
 
 #if DT_HAS_COMPAT_STATUS_OKAY(DT_DRV_COMPAT)
-DT_INST_FOREACH_STATUS_OKAY_VARGS(CHARGER_BQ24295_DEFINE,
-				  bq24295,
-				  BQ24295_PART_NUMBER)
+DT_INST_FOREACH_STATUS_OKAY_VARGS(CHARGER_BQ24295_DEFINE, bq24295, BQ24295_PART_NUMBER)
 #endif
 
 #undef DT_DRV_COMPAT
