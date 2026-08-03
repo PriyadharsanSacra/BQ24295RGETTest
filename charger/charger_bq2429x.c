@@ -14,7 +14,7 @@
 #include <zephyr/logging/log.h>
 #include <zephyr/drivers/gpio.h>
 
-LOG_MODULE_REGISTER(ti_bq24295, CONFIG_CHARGER_LOG_LEVEL);
+LOG_MODULE_REGISTER(ti_bq2429x, CONFIG_CHARGER_LOG_LEVEL);
 
 /* Register 0x00 - Input Source Control */
 #define BQ2429X_REG_INPUT_SRC_CTRL 0x00
@@ -70,7 +70,6 @@ LOG_MODULE_REGISTER(ti_bq24295, CONFIG_CHARGER_LOG_LEVEL);
 #define BQ2429X_REG_PRECHG_TERM_CURRENT 0x03
 
 #define BQ2429X_IPRECHG_MASK GENMASK(7, 4)
-#define BQ2429X_ITERM_MASK   GENMASK(3, 0)
 
 #define BQ2429X_IPRECHG_OFFSET_UA 128000
 #define BQ2429X_IPRECHG_STEP_UA   128000
@@ -78,8 +77,6 @@ LOG_MODULE_REGISTER(ti_bq24295, CONFIG_CHARGER_LOG_LEVEL);
 #define BQ2429X_IPRECHG_MAX_UA    2048000
 #define BQ2429X_ITERM_OFFSET_UA   128000
 #define BQ2429X_ITERM_STEP_UA     128000
-#define BQ2429X_ITERM_MIN_UA      128000
-#define BQ2429X_ITERM_MAX_UA      2048000
 
 /* Register 0x04 - Charge Voltage Control */
 #define BQ2429X_REG_CHARGE_VOLTAGE 0x04
@@ -191,9 +188,11 @@ LOG_MODULE_REGISTER(ti_bq24295, CONFIG_CHARGER_LOG_LEVEL);
 #define BQ2429X_REVISION_MASK    GENMASK(2, 0)
 #define BQ2429X_PART_NUMBER_MASK GENMASK(7, 5)
 
-#define BQ24295_PART_NUMBER 0x6
-#define BQ24296_PART_NUMBER 0x1
-#define BQ24297_PART_NUMBER 0x3
+#define BQ24295_PART_NUMBER  0x6
+#define BQ24296_PART_NUMBER  0x1
+#define BQ24296M_PART_NUMBER 0x1
+#define BQ24297_PART_NUMBER  0x3
+#define BQ24298_PART_NUMBER  0x1
 
 struct bq2429x_config {
 	struct i2c_dt_spec i2c;
@@ -201,6 +200,9 @@ struct bq2429x_config {
 	uint32_t ichg_ua;
 	uint32_t vreg_uv;
 	uint32_t watchdog_timeout_ms;
+	uint32_t iterm_min_ua;
+	uint32_t iterm_max_ua;
+	uint8_t iterm_mask;
 	uint8_t part_no;
 };
 
@@ -439,10 +441,11 @@ static int bq2429x_get_precharge_current(const struct device *dev, uint32_t *cur
 
 static int bq2429x_get_termination_current(const struct device *dev, uint32_t *current_ua)
 {
+	const struct bq2429x_config *config = dev->config;
 	uint8_t iterm;
 	int ret;
 
-	ret = bq2429x_field_read(dev, BQ2429X_REG_PRECHG_TERM_CURRENT, BQ2429X_ITERM_MASK, &iterm);
+	ret = bq2429x_field_read(dev, BQ2429X_REG_PRECHG_TERM_CURRENT, config->iterm_mask, &iterm);
 	if (ret < 0) {
 		return ret;
 	}
@@ -534,17 +537,18 @@ static int bq2429x_set_precharge_current(const struct device *dev, uint32_t curr
 
 static int bq2429x_set_termination_current(const struct device *dev, uint32_t current_ua)
 {
+	const struct bq2429x_config *config = dev->config;
 	uint8_t iterm;
 
-	if (!IN_RANGE(current_ua, BQ2429X_ITERM_MIN_UA, BQ2429X_ITERM_MAX_UA)) {
+	if (!IN_RANGE(current_ua, config->iterm_min_ua, config->iterm_max_ua)) {
 		LOG_WRN("Termination current %u uA out of range, clamping", current_ua);
 	}
 
-	current_ua = CLAMP(current_ua, BQ2429X_ITERM_MIN_UA, BQ2429X_ITERM_MAX_UA);
+	current_ua = CLAMP(current_ua, config->iterm_min_ua, config->iterm_max_ua);
 
 	iterm = (current_ua - BQ2429X_ITERM_OFFSET_UA) / BQ2429X_ITERM_STEP_UA;
 
-	return bq2429x_field_write(dev, BQ2429X_REG_PRECHG_TERM_CURRENT, BQ2429X_ITERM_MASK, iterm);
+	return bq2429x_field_write(dev, BQ2429X_REG_PRECHG_TERM_CURRENT, config->iterm_mask, iterm);
 }
 
 static int bq2429x_set_constant_charge_voltage(const struct device *dev, uint32_t voltage_uv)
@@ -778,7 +782,7 @@ static DEVICE_API(charger, bq2429x_api) = {
 	.charge_enable = bq2429x_charge_enable,
 };
 
-#define CHARGER_BQ2429X_CONFIG(inst, name, id)                                                     \
+#define CHARGER_BQ2429X_CONFIG(inst, name, id, term_mask, term_min, term_max)                      \
 	static const struct bq2429x_config name##_config_##inst = {                                \
 		.i2c = I2C_DT_SPEC_INST_GET(inst),                                                 \
 		.ce_gpio = GPIO_DT_SPEC_INST_GET_OR(inst, ce_gpios, {}),                           \
@@ -786,30 +790,50 @@ static DEVICE_API(charger, bq2429x_api) = {
 		.vreg_uv = DT_INST_PROP(inst, constant_charge_voltage_max_microvolt),              \
 		.watchdog_timeout_ms = DT_INST_PROP(inst, watchdog_timeout_ms),                    \
 		.part_no = id,                                                                     \
+		.iterm_mask = term_mask,                                                           \
+		.iterm_min_ua = term_min,                                                          \
+		.iterm_max_ua = term_max,                                                          \
 	}
 
 #define CHARGER_BQ2429X_INIT(inst, name)                                                           \
 	DEVICE_DT_INST_DEFINE(inst, bq2429x_init, NULL, NULL, &name##_config_##inst, POST_KERNEL,  \
 			      CONFIG_CHARGER_INIT_PRIORITY, &bq2429x_api)
 
-#define CHARGER_BQ2429X_DEFINE(inst, name, id)                                                     \
-	CHARGER_BQ2429X_CONFIG(inst, name, id);                                                    \
+#define CHARGER_BQ2429X_DEFINE(inst, name, id, term_mask, term_min, term_max)                      \
+	CHARGER_BQ2429X_CONFIG(inst, name, id, term_mask, term_min, term_max);                     \
 	CHARGER_BQ2429X_INIT(inst, name);
 
 #define DT_DRV_COMPAT ti_bq24295
 #if DT_HAS_COMPAT_STATUS_OKAY(DT_DRV_COMPAT)
-DT_INST_FOREACH_STATUS_OKAY_VARGS(CHARGER_BQ2429X_DEFINE, bq24295, BQ24295_PART_NUMBER)
+DT_INST_FOREACH_STATUS_OKAY_VARGS(CHARGER_BQ2429X_DEFINE, bq24295, BQ24295_PART_NUMBER,
+				  GENMASK(3, 0), 128000, 2048000)
 #endif /*DT_HAS_COMPAT_STATUS_OKAY(DT_DRV_COMPAT)*/
 #undef DT_DRV_COMPAT
 
 #define DT_DRV_COMPAT ti_bq24296
 #if DT_HAS_COMPAT_STATUS_OKAY(DT_DRV_COMPAT)
-DT_INST_FOREACH_STATUS_OKAY_VARGS(CHARGER_BQ2429X_DEFINE, bq24296, BQ24296_PART_NUMBER)
+DT_INST_FOREACH_STATUS_OKAY_VARGS(CHARGER_BQ2429X_DEFINE, bq24296, BQ24296_PART_NUMBER,
+				  GENMASK(3, 0), 128000, 2048000)
+#endif /*DT_HAS_COMPAT_STATUS_OKAY(DT_DRV_COMPAT)*/
+#undef DT_DRV_COMPAT
+
+#define DT_DRV_COMPAT ti_bq24296m
+#if DT_HAS_COMPAT_STATUS_OKAY(DT_DRV_COMPAT)
+DT_INST_FOREACH_STATUS_OKAY_VARGS(CHARGER_BQ2429X_DEFINE, bq24296m, BQ24296M_PART_NUMBER,
+				  GENMASK(2, 0), 128000, 1024000)
 #endif /*DT_HAS_COMPAT_STATUS_OKAY(DT_DRV_COMPAT)*/
 #undef DT_DRV_COMPAT
 
 #define DT_DRV_COMPAT ti_bq24297
 #if DT_HAS_COMPAT_STATUS_OKAY(DT_DRV_COMPAT)
-DT_INST_FOREACH_STATUS_OKAY_VARGS(CHARGER_BQ2429X_DEFINE, bq24297, BQ24297_PART_NUMBER)
+DT_INST_FOREACH_STATUS_OKAY_VARGS(CHARGER_BQ2429X_DEFINE, bq24297, BQ24297_PART_NUMBER,
+				  GENMASK(3, 0), 128000, 2048000)
+#endif /*DT_HAS_COMPAT_STATUS_OKAY(DT_DRV_COMPAT)*/
+#undef DT_DRV_COMPAT
+
+#define DT_DRV_COMPAT ti_bq24298
+#if DT_HAS_COMPAT_STATUS_OKAY(DT_DRV_COMPAT)
+DT_INST_FOREACH_STATUS_OKAY_VARGS(CHARGER_BQ2429X_DEFINE, bq24298, BQ24298_PART_NUMBER,
+				  GENMASK(2, 0), 128000, 1024000)
 #endif /*DT_HAS_COMPAT_STATUS_OKAY(DT_DRV_COMPAT)*/
 #undef DT_DRV_COMPAT
