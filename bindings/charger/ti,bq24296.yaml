@@ -2,8 +2,6 @@
 # SPDX-License-Identifier: Apache-2.0
 
 description: |
-  BQ24296 family of charging ICs.
-
   BQ24296 I2C controlled, 1-cell, switch-mode battery charger with
   power-path management and USB OTG support.
 

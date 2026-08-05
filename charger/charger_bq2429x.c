@@ -224,7 +224,7 @@ static int bq2429x_reg_update(const struct device *dev, uint8_t reg, uint8_t mas
 	return i2c_reg_update_byte_dt(&config->i2c, reg, mask, val);
 }
 
-static int bq2429x_test_bit(const struct device *dev, uint8_t reg, uint8_t bit, bool *set)
+static int bq2429x_test_bit(const struct device *dev, uint8_t reg, const uint8_t bit, bool *set)
 {
 	uint8_t value;
 	int ret;
@@ -330,7 +330,7 @@ static int bq2429x_get_status(const struct device *dev, enum charger_status *sta
 		*status = CHARGER_STATUS_FULL;
 		break;
 	default:
-		return -EIO;
+		return -EINVAL;
 	}
 
 	return 0;
@@ -703,12 +703,12 @@ static int bq2429x_charge_enable(const struct device *dev, bool enable)
 {
 	const struct bq2429x_config *config = dev->config;
 	uint8_t value;
-	int ret;
 
 	if (config->ce_gpio.port != NULL) {
-		ret = gpio_pin_set_dt(&config->ce_gpio, enable);
-		if (ret < 0) {
-			return ret;
+		if (enable == true) {
+			return gpio_pin_set_dt(&config->ce_gpio, 1);
+		} else {
+			return gpio_pin_set_dt(&config->ce_gpio, 0);
 		}
 	}
 
